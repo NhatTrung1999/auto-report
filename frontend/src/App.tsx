@@ -10,13 +10,19 @@ interface HeaderProps {
 
 interface SidebarProps {
   isOpen: boolean;
-  setClose: () => void; // 👈 Mới: Hàm để đóng sidebar
+  setClose: () => void;
 }
 
 interface SidebarItemProps {
   icon: string;
-  label: string; 
+  label: string;
   active?: boolean;
+}
+
+interface CollapsibleItemProps {
+  icon: string;
+  label: string;
+  children: { label: string; value: string }[];
 }
 
 // --- CORE COMPONENTS ---
@@ -40,18 +46,106 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
   </a>
 );
 
+// MỚI: Component cho Menu có thể mở rộng (Collapsible Menu Item)
+const CollapsibleSidebarItem: React.FC<CollapsibleItemProps> = ({
+  icon,
+  label,
+  children,
+}) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  return (
+    <div>
+      {/* Nút bấm cha (Chart) */}
+      <a
+        href="#"
+        onClick={toggleMenu}
+        className="flex items-center justify-between p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-200"
+      >
+        <span className="flex items-center">
+          <span className="mr-3">{icon}</span>
+          {label}
+        </span>
+        {/* Biểu tượng mũi tên (rotate khi mở) */}
+        <svg
+          className={`w-4 h-4 transition-transform duration-200 ${
+            isMenuOpen ? 'rotate-90' : 'rotate-0'
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 5l7 7-7 7"
+          ></path>
+        </svg>
+      </a>
+
+      {/* Menu con */}
+      {isMenuOpen && (
+        <div className="pl-8 pt-1 pb-1 space-y-1">
+          {children.map((child) => (
+            <a
+              key={child.value}
+              href={`#${child.value.toLowerCase()}`}
+              className="block p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-200 transition duration-200"
+            >
+              {child.label}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => (
   <header className="flex items-center justify-between p-4 bg-white border-b border-gray-200 shadow-md fixed w-full z-30">
     <div className="flex items-center">
       <button
         onClick={toggleSidebar}
-        className="p-2 mr-4 text-gray-600 hover:bg-gray-100 rounded-full transition duration-200" // 👈 Hiện trên mọi màn hình
+        className="p-2 mr-4 text-gray-600 hover:bg-gray-100 rounded-full transition duration-200"
         title={isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
       >
         {isSidebarOpen ? (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
         ) : (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            ></path>
+          </svg>
         )}
       </button>
 
@@ -59,63 +153,65 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => (
         MyApp
       </div>
     </div>
-    <nav className="space-x-4">
-      <a
-        href="#"
-        className="text-gray-600 hover:text-teal-600 transition duration-200"
-      >
-        Dashboard
-      </a>
-      <a
-        href="#"
-        className="text-gray-600 hover:text-teal-600 transition duration-200"
-      >
-        Settings
-      </a>
-    </nav>
   </header>
 );
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, setClose }) => ( // 👈 Nhận setClose
-  <>
-    {/* Overlay */}
-    {isOpen && (
-      <div 
-        className="fixed inset-0 bg-black opacity-50 z-10 lg:hidden"
-        onClick={setClose} // 👈 Thêm hàm đóng
-      ></div>
-    )}
-    
-    <aside
-      className={`
-        w-64 fixed top-0 left-0 bottom-0 
-        bg-gray-50 text-gray-800 flex flex-col pt-16 border-r border-gray-200 
-        shadow-lg z-20 
-        transition-transform duration-300 ease-in-out
-        
-        // Điều khiển bởi isOpen trên mọi màn hình
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-      `}
-    >
-      <nav className="p-4 space-y-2">
-        <SidebarItem icon="🏠" label="Overview" active={true} />
-        <SidebarItem icon="📊" label="Analytics" />
-        <SidebarItem icon="⚙️" label="Management" />
-        <SidebarItem icon="🔔" label="Notifications" />
-      </nav>
-    </aside>
-  </>
-);
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, setClose }) => {
+  // Dữ liệu menu Chart con
+  const chartOptions = [
+    { value: '', label: 'No visualization' },
+    { value: 'Line', label: 'Line' },
+    { value: 'Bar', label: 'Bar' },
+    { value: 'Pie', label: 'Pie' },
+    { value: 'Scatter', label: 'Scatter' },
+  ];
+
+  return (
+    <>
+      {/* Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-50 z-10 lg:hidden"
+          onClick={setClose}
+        ></div>
+      )}
+
+      <aside
+        className={`
+                w-64 fixed top-0 left-0 bottom-0 
+                bg-gray-50 text-gray-800 flex flex-col pt-16 border-r border-gray-200 
+                shadow-lg z-20 
+                transition-transform duration-300 ease-in-out
+                ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
+            `}
+      >
+        <nav className="p-4 space-y-2">
+          {/* 1. Item cố định: Table */}
+          <SidebarItem icon="📝" label="Table Data" active={true} />
+
+          {/* 2. Item có thể mở rộng: Chart */}
+          <CollapsibleSidebarItem
+            icon="📈"
+            label="Charts"
+            children={chartOptions}
+          />
+        </nav>
+      </aside>
+    </>
+  );
+};
 
 const DashboardTable: React.FC = () => (
   <div className="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-    <h3 className="text-xl font-semibold mb-4 text-gray-800">Recent Projects & Status</h3>
-    
-    <div className="overflow-x-auto"> 
+    <h3 className="text-xl font-semibold mb-4 text-gray-800">
+      Recent Projects & Status
+    </h3>
+
+    <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">
               Project Name
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -143,7 +239,7 @@ const DashboardTable: React.FC = () => (
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           <tr className="hover:bg-gray-50">
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
               Corporate Website Migration
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
@@ -171,7 +267,7 @@ const DashboardTable: React.FC = () => (
             </td>
           </tr>
           <tr className="hover:bg-gray-50">
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
               Mobile App Feature X Launch
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
@@ -200,11 +296,17 @@ const DashboardTable: React.FC = () => (
           </tr>
           {[...Array(5)].map((_, index) => (
             <tr key={index + 3} className="hover:bg-gray-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-white z-10">
                 Marketing Campaign Q1-{index + 1}
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${index % 3 === 0 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'}`}>
+                <span
+                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    index % 3 === 0
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
                   {index % 3 === 0 ? 'Planned' : 'Stalled'}
                 </span>
               </td>
@@ -242,7 +344,7 @@ const App: React.FC = () => {
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
   };
-  
+
   const closeSidebar = () => {
     setIsSidebarOpen(false);
   };

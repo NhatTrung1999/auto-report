@@ -15,9 +15,7 @@ export function IsSelectOnly(validationOptions?: ValidationOptions) {
         validate(value: any, args: ValidationArguments) {
           if (typeof value !== 'string') return false;
           const trimmedQuery = value.trim().toUpperCase();
-          if (!trimmedQuery.startsWith('SELECT ')) {
-            return false;
-          }
+          if (!trimmedQuery.startsWith('SELECT ')) return false;
           const forbiddenCommands = [
             'INSERT',
             'UPDATE',
