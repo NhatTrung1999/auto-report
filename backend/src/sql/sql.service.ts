@@ -1,174 +1,145 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConnectionPool, IResult, Request, config as SqlConfig } from 'mssql';
 import { DatabaseConfigDto } from './dto/database-config.dto';
-import { AggregateConfigDto } from './dto/aggregate-config.dto';
+import {
+  AggregateConfigDto,
+  ColumnSelectionDto,
+} from './dto/dynamic-aggregate.dto';
+
+interface QueryResult {
+  success: boolean;
+  message: string;
+  result?: IResult<any>;
+  data?: any[];
+  columns?: string[];
+}
 
 @Injectable()
 export class SqlService {
   private readonly logger = new Logger(SqlService.name);
-  async connect(config: DatabaseConfigDto | AggregateConfigDto): Promise<{
-    success: boolean;
-    message: string;
-    pool?: ConnectionPool;
-  }> {
-    let pool: ConnectionPool | null = null;
 
+  private async connect(
+    config: DatabaseConfigDto,
+  ): Promise<{ success: boolean; message: string; pool?: ConnectionPool }> {
     try {
       const sqlConfig: SqlConfig = {
-        user: (config as any).username,
-        password: (config as any).password,
-        server: (config as any).host,
-        port: (config as any).port,
-        database: (config as any).database,
-        options: {
-          encrypt: true,
-          trustServerCertificate: true,
-        },
-        requestTimeout: (config as any).requestTimeout || 15000,
-        pool: {
-          max: 10,
-          min: 0,
-          idleTimeoutMillis: 30000,
-        },
+        user: config.username,
+        password: config.password,
+        server: config.host,
+        port: config.port,
+        database: config.database,
+        options: { encrypt: true, trustServerCertificate: true },
+        requestTimeout: config.requestTimeout || 30000,
+        pool: { max: 10, min: 0, idleTimeoutMillis: 30000 },
       };
 
-      pool = new ConnectionPool(sqlConfig);
+      const pool = new ConnectionPool(sqlConfig);
       await pool.connect();
-
-      this.logger.log(
-        `Connected to ${(config as any).database} on ${(config as any).host}:${(config as any).port}`,
-      );
-
-      return {
-        success: true,
-        message: 'Connected successfully!',
-        pool,
-      };
-    } catch (error) {
-      this.logger.error(`Connect failed: ${error.message}`);
-      return {
-        success: false,
-        message: `Connect error: ${error.message}`,
-      };
+      return { success: true, message: 'Connected', pool };
+    } catch (error: any) {
+      return { success: false, message: error.message };
     }
   }
 
-  async executeQuery(
+  private async executeQuery(
     pool: ConnectionPool,
     query: string,
-    params?: { [key: string]: any },
-  ): Promise<{
-    success: boolean;
-    message: string;
-    result?: IResult<any>;
-    data?: any[];
-    columns?: string[];
-  }> {
+    params?: Record<string, any>,
+  ): Promise<QueryResult> {
     if (!pool.connected) {
-      return { success: false, message: 'Pool is not connected.' };
+      return { success: false, message: 'Connection lost', columns: [] };
     }
 
     try {
-      const request: Request = pool.request();
-
+      const request = pool.request();
       if (params) {
-        Object.keys(params).forEach((key) => {
-          request.input(key, params[key]);
-        });
+        Object.entries(params).forEach(([key, value]) =>
+          request.input(key, value),
+        );
       }
 
-      const result: IResult<any> = await request.query(query);
-
-      this.logger.log(`Query executed: ${query.substring(0, 50)}...`);
-
+      const result = await request.query(query);
       const columns = result.recordset.columns
         ? Object.keys(result.recordset.columns)
         : [];
 
       return {
         success: true,
-        message: 'Query executed successfully!',
+        message: 'Query executed',
         result,
         data: result.recordset,
         columns,
       };
-    } catch (error) {
-      this.logger.error(`Query failed: ${error.message}`);
-      return {
-        success: false,
-        message: `Query error: ${error.message}`,
-      };
+    } catch (error: any) {
+      return { success: false, message: error.message, columns: [] };
     }
   }
 
-  private generateAggregateQuery(config: AggregateConfigDto): string {
-    const { table, selections, topN } = config;
-
-    console.log(table, selections, topN);
-    if (selections.length === 0) {
-      throw new Error('No selections provided.');
+  private generateWrappedQuery(
+    originalQuery: string,
+    selections: NonNullable<DatabaseConfigDto['selections']>,
+    topN?: number,
+  ): string {
+    if (!selections || selections.length === 0) {
+      return topN
+        ? `SELECT TOP ${topN} * FROM (${originalQuery}) AS T`
+        : originalQuery;
     }
 
-    const selectParts = selections.map((sel) => {
-      const alias = `${sel.func}${sel.column}`;
-      return `${sel.func}(${sel.column}) AS ${alias}`;
+    const selectParts: string[] = [];
+    const groupByParts: string[] = [];
+
+    selections.forEach((sel) => {
+      if (sel.func) {
+        const alias = sel.alias || `${sel.func}_${sel.column}`;
+        selectParts.push(`${sel.func}([${sel.column}]) AS [${alias}]`);
+      } else {
+        selectParts.push(`[${sel.column}]`);
+        groupByParts.push(`[${sel.column}]`);
+      }
     });
 
-    let query = `SELECT ${selectParts.join(', ')} FROM ${table}`;
+    const topClause = topN ? `TOP ${topN} ` : '';
+    let query = `SELECT ${topClause}${selectParts.join(', ')}\nFROM (${originalQuery}) AS SubQuery`;
 
-    if (topN) {
-      query = `SELECT TOP ${topN} ${selectParts.join(', ')} FROM ${table}`;
+    if (groupByParts.length > 0) {
+      query += `\nGROUP BY ${groupByParts.join(', ')}`;
     }
 
-    const upperQuery = query.toUpperCase();
-    if (!upperQuery.startsWith('SELECT ')) {
-      throw new Error('Generated query must start with SELECT.');
-    }
-
-    this.logger.log(`Generated aggregate query: ${query}`);
+    this.logger.log(`Generated query:\n${query}`);
     return query;
   }
 
-  // Hàm execute chung (regular hoặc aggregate)
-  async executeGeneralQuery(
-    config: DatabaseConfigDto | AggregateConfigDto,
-    isAggregate: boolean = false,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    result?: IResult<any>;
-    data?: any[];
-    columns?: string[];
-  }> {
+  async executeGeneralQuery(config: DatabaseConfigDto): Promise<QueryResult> {
     let pool: ConnectionPool | null = null;
-    let query: string;
-    let params: { [key: string]: any } | undefined;
 
     try {
       const connectResult = await this.connect(config);
       if (!connectResult.success || !connectResult.pool) {
-        return { success: false, message: connectResult.message };
+        return { success: false, message: connectResult.message, columns: [] };
       }
       pool = connectResult.pool;
 
-      if (isAggregate) {
-        query = this.generateAggregateQuery(config as AggregateConfigDto);
-        params = undefined;
+      let finalQuery: string;
+
+      if (config.selections && config.selections.length > 0) {
+        finalQuery = this.generateWrappedQuery(
+          config.query,
+          config.selections,
+          config.topN,
+        );
       } else {
-        query = (config as DatabaseConfigDto).query;
-        params = (config as DatabaseConfigDto).params;
+        finalQuery = config.topN
+          ? `SELECT TOP ${config.topN} * FROM (${config.query}) AS T`
+          : config.query;
       }
 
-      const queryResult = await this.executeQuery(pool, query, params);
-      return queryResult;
-    } catch (error) {
-      this.logger.error(`General query failed: ${error.message}`);
-      return { success: false, message: `Execute error: ${error.message}` };
+      return await this.executeQuery(pool, finalQuery, config.params);
+    } catch (error: any) {
+      this.logger.error(`Execute error: ${error.message}`);
+      return { success: false, message: error.message, columns: [] };
     } finally {
-      if (pool) {
-        await pool.close();
-        this.logger.log('Pool closed after general query.');
-      }
+      if (pool) await pool.close();
     }
   }
 }

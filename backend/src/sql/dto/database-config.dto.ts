@@ -1,5 +1,19 @@
-import { IsInt, IsObject, IsOptional, IsString, Min } from 'class-validator';
+import { IsArray, IsInt, IsObject, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { IsSelectOnly } from './validators/select-only.validator';
+import { Type } from 'class-transformer';
+
+class ColumnSelectionDto {
+  @IsString()
+  column: string;
+
+  @IsOptional()
+  @IsString()
+  func?: 'SUM' | 'AVG' | 'MIN' | 'MAX' | 'COUNT';
+
+  @IsOptional()
+  @IsString()
+  alias?: string;
+}
 
 export class DatabaseConfigDto {
   @IsString()
@@ -25,9 +39,20 @@ export class DatabaseConfigDto {
 
   @IsString()
   @IsSelectOnly()
-  query: string;
+  query: string; 
 
   @IsOptional()
   @IsObject()
   params?: { [key: string]: any };
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ColumnSelectionDto)
+  selections?: ColumnSelectionDto[];
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  topN?: number;
 }

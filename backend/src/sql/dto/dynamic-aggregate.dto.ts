@@ -5,15 +5,22 @@ import {
   Min,
   IsArray,
   ValidateNested,
+  IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsSelectOnly } from './validators/select-only.validator';
 
-class AggregateSelectionDto {
+export class ColumnSelectionDto {
   @IsString()
-  column: string; // Tên cột từ /columns
+  column: string;
 
+  @IsOptional()
   @IsString()
-  func: 'SUM' | 'AVG' | 'MIN' | 'MAX'; // Whitelist functions
+  func?: 'SUM' | 'AVG' | 'MIN' | 'MAX' | 'COUNT';
+
+  @IsOptional()
+  @IsString()
+  alias?: string;
 }
 
 export class AggregateConfigDto {
@@ -39,15 +46,21 @@ export class AggregateConfigDto {
   requestTimeout?: number = 15000;
 
   @IsString()
-  table: string; // Tên table cho FROM
+  @IsSelectOnly()
+  query: string;
 
+  @IsOptional()
+  @IsObject()
+  params?: { [key: string]: any };
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => AggregateSelectionDto)
-  selections: AggregateSelectionDto[]; // [{ column: 'PostalCode', func: 'SUM' }]
+  @Type(() => ColumnSelectionDto)
+  selections?: ColumnSelectionDto[];
 
   @IsOptional()
   @IsInt()
   @Min(1)
-  topN?: number; // TOP N optional
+  topN?: number;
 }
