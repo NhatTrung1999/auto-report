@@ -1,10 +1,9 @@
 // import { Button } from '@/components/ui/button';
-import React, { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -13,6 +12,16 @@ import {
 import { Button } from './components/ui/button';
 import { Label } from './components/ui/label';
 import { Input } from './components/ui/input';
+import { TableIcon, PieChartIcon } from './assets/icons';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from './components/ui/select';
 
 // --- TYPE DECLARATIONS (TypeScript) ---
 
@@ -27,13 +36,13 @@ interface SidebarProps {
 }
 
 interface SidebarItemProps {
-  icon: string;
+  icon: ReactNode;
   label: string;
   active?: boolean;
 }
 
 interface CollapsibleItemProps {
-  icon: string;
+  icon: ReactNode;
   label: string;
   children: { label: string; value: string }[];
 }
@@ -200,12 +209,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setClose }) => {
       >
         <nav className="p-4 space-y-2">
           {/* 1. Item cố định: Table */}
-          <SidebarItem icon="📝" label="Table Data" active={true} />
+          <SidebarItem
+            icon={<TableIcon />}
+            label="Columns View"
+            active={true}
+          />
 
           {/* 2. Item có thể mở rộng: Chart */}
           <CollapsibleSidebarItem
-            icon="📈"
-            label="Charts"
+            icon={<PieChartIcon />}
+            label="Charts View"
             children={chartOptions}
           />
         </nav>
@@ -215,10 +228,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setClose }) => {
 };
 
 const DashboardTable: React.FC = () => (
-  <div className="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-    <h3 className="text-xl font-semibold mb-4 text-gray-800">
-      Recent Projects & Status
-    </h3>
+  <div className="mt-6 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+    <h3 className="text-xl font-semibold mb-4 text-gray-800">Columns view</h3>
 
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -380,48 +391,67 @@ const App: React.FC = () => {
           `}
         >
           <h2 className="text-3xl font-light mb-6 text-gray-700 border-b border-gray-300 pb-2">
-            Main Dashboard
+            Columns
           </h2>
-          <Dialog>
-            <form>
-              <DialogTrigger asChild>
-                <Button variant="outline">Open Dialog</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Edit profile</DialogTitle>
-                  <DialogDescription>
-                    Make changes to your profile here. Click save when
-                    you&apos;re done.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4">
-                  <div className="grid gap-3">
-                    <Label htmlFor="name-1">Name</Label>
-                    <Input
-                      id="name-1"
-                      name="name"
-                      defaultValue="Pedro Duarte"
-                    />
+          <div className="flex items-center justify-end">
+            <Dialog>
+              <form>
+                <DialogTrigger asChild>
+                  <Button variant="outline">Auto columns</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Auto columns</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid gap-3">
+                      <Label htmlFor="name-1">Excel Functions</Label>
+                      <div className="rounded-2xl border border-gray-200 bg-white h-[170px] p-2 overflow-y-auto no-scrollbar flex flex-col gap-2"></div>
+                      <Select>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Option</SelectLabel>
+                            <SelectItem value="none">(empty)</SelectItem>
+                            <SelectItem value="SUM">SUM</SelectItem>
+                            <SelectItem value="AVERAGE">AVERAGE</SelectItem>
+                            <SelectItem value="MAX">MAX</SelectItem>
+                            <SelectItem value="MIN">MIN</SelectItem>
+                            <SelectItem value="TOPN">TOP N</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-3">
+                      <Label htmlFor="username-1">Clause</Label>
+                      <div className="rounded-2xl border border-gray-200 bg-white h-[170px] p-2 overflow-y-auto no-scrollbar flex flex-col gap-2"></div>
+                      <Select>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Choose option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Option</SelectLabel>
+                            <SelectItem value="none">(empty)</SelectItem>
+                            <SelectItem value="GROUPBY">GROUP BY</SelectItem>
+                            <SelectItem value="ORDERBY">ORDER BY</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="grid gap-3">
-                    <Label htmlFor="username-1">Username</Label>
-                    <Input
-                      id="username-1"
-                      name="username"
-                      defaultValue="@peduarte"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button type="submit">Save changes</Button>
-                </DialogFooter>
-              </DialogContent>
-            </form>
-          </Dialog>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button type="submit">Create</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </form>
+            </Dialog>
+          </div>
           <DashboardTable />
         </main>
       </div>
