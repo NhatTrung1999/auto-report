@@ -28,7 +28,10 @@ export class SqlService {
         server: config.host,
         port: config.port,
         database: config.database,
-        options: { encrypt: true, trustServerCertificate: true },
+        options: {
+          encrypt: true,
+          trustServerCertificate: true,
+        },
         requestTimeout: config.requestTimeout || 30000,
         pool: { max: 10, min: 0, idleTimeoutMillis: 30000 },
       };
