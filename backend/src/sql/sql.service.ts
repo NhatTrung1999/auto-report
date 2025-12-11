@@ -1,10 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConnectionPool, IResult, Request, config as SqlConfig } from 'mssql';
 import { DatabaseConfigDto } from './dto/database-config.dto';
-import {
-  AggregateConfigDto,
-  ColumnSelectionDto,
-} from './dto/dynamic-aggregate.dto';
+import { Sequelize } from 'sequelize-typescript';
+import { QueryTypes } from 'sequelize';
 
 interface QueryResult {
   success: boolean;
@@ -16,6 +14,8 @@ interface QueryResult {
 
 @Injectable()
 export class SqlService {
+  constructor(@Inject('DATABASE') private readonly database: Sequelize) {}
+
   private readonly logger = new Logger(SqlService.name);
 
   private async connect(
@@ -144,5 +144,15 @@ export class SqlService {
     } finally {
       if (pool) await pool.close();
     }
+  }
+
+  async getCodeID(codeId: string) {
+    console.log(codeId);
+    const query = `SELECT * FROM SQLData WHERE CodeID = '${codeId}'`;
+    const record = await this.database.query(query, {
+      type: QueryTypes.SELECT,
+    });
+    console.log(record);
+    // return 'codeid';
   }
 }

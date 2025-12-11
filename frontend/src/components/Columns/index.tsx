@@ -42,7 +42,10 @@ const ColumnsView: React.FC = () => {
                   <Label htmlFor="name-1">Excel Functions</Label>
                   <div className="rounded-2xl border border-gray-200 bg-white h-[170px] p-2 overflow-y-auto no-scrollbar flex flex-col gap-2">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Label className="hover:bg-accent/50 flex items-center gap-3 rounded-lg border p-3 has-aria-checked:border-blue-600 has-aria-checked:bg-blue-50">
+                      <Label
+                        key={i}
+                        className="hover:bg-accent/50 flex items-center gap-3 rounded-lg border p-3 has-aria-checked:border-blue-600 has-aria-checked:bg-blue-50"
+                      >
                         <Checkbox
                           id="toggle-2"
                           className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white"

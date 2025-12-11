@@ -3,11 +3,17 @@ import ColumnsView from '@/components/Columns';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import { useState } from 'react';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useLocation } from 'react-router';
 import NotFound from './NotFound';
 
 const AppRoutes: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  const codeId = params.get('CodeID');
+
+  console.log(codeId);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);

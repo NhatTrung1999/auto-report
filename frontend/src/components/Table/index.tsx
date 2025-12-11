@@ -49,13 +49,13 @@ const sampleData = [
 ];
 
 const TableView: React.FC = () => (
-  // <Card className="mt-6">
-  //   <CardContent>
-      <Card className="border border-gray-200 rounded-xl overflow-auto max-h-[600px]">
+  <Card className="mt-6">
+    <CardContent>
+      <Card className="border border-gray-200 rounded-xl overflow-auto max-h-[600px] p-0">
         <Table className="min-w-full border-separate border-spacing-0">
           <TableHeader className="bg-gray-50 sticky top-0 z-30">
             <TableRow className="hover:bg-gray-50 border-b border-gray-200">
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 top-0 bg-gray-50 z-40 border-r border-gray-200">
+              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-r border-gray-200">
                 Project Name
               </TableHead>
               <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
@@ -85,7 +85,7 @@ const TableView: React.FC = () => (
           <TableBody className="bg-white divide-y divide-gray-200">
             {sampleData.map((item, index) => (
               <TableRow key={index} className="hover:bg-gray-50 group">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 sticky left-0 bg-white group-hover:bg-gray-50 z-10">
+                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 bg-white group-hover:bg-gray-50">
                   {item.name}
                 </TableCell>
 
@@ -121,8 +121,8 @@ const TableView: React.FC = () => (
           </TableBody>
         </Table>
       </Card>
-    // </CardContent>
-  // </Card>
+    </CardContent>
+  </Card>
 );
 
 export default TableView;

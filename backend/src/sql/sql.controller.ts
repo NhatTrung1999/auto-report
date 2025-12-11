@@ -6,11 +6,10 @@ import {
   HttpStatus,
   Post,
   Logger,
+  Query,
 } from '@nestjs/common';
 import { SqlService } from './sql.service';
 import { DatabaseConfigDto } from './dto/database-config.dto';
-import { ConnectionPool } from 'mssql';
-import { AggregateConfigDto } from './dto/dynamic-aggregate.dto';
 
 @Controller('sql')
 export class SqlController {
@@ -47,5 +46,10 @@ export class SqlController {
     }
 
     throw new HttpException(result.message, HttpStatus.BAD_REQUEST);
+  }
+
+  @Get('codeid')
+  async getCodeID(@Query('CodeID') codeId: string) {
+    return this.sqlService.getCodeID(codeId);
   }
 }
