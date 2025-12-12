@@ -1,3 +1,4 @@
+import { useAppSelector } from '@/app/hooks';
 import { Card, CardContent } from '../ui/card';
 import {
   Table,
@@ -48,81 +49,107 @@ const sampleData = [
   })),
 ];
 
-const TableView: React.FC = () => (
-  <Card className="mt-6">
-    <CardContent>
-      <Card className="border border-gray-200 rounded-xl overflow-auto max-h-[600px] p-0">
-        <Table className="min-w-full border-separate border-spacing-0">
-          <TableHeader className="bg-gray-50 sticky top-0 z-30">
-            <TableRow className="hover:bg-gray-50 border-b border-gray-200">
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-r border-gray-200">
-                Project Name
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                Status
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                Priority
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                Assigned To
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                Start Date
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                Due Date
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
-                Progress (%)
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Last Update
-              </TableHead>
-            </TableRow>
-          </TableHeader>
+const TableView: React.FC = () => {
+  const { executeSqlCodeData } = useAppSelector((state) => state.sql);
 
-          <TableBody className="bg-white divide-y divide-gray-200">
-            {sampleData.map((item, index) => (
-              <TableRow key={index} className="hover:bg-gray-50 group">
-                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 bg-white group-hover:bg-gray-50">
-                  {item.name}
-                </TableCell>
+  console.log(executeSqlCodeData);
 
-                <TableCell className="px-6 py-4 whitespace-nowrap border-r border-gray-200">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.statusClass}`}
+  return (
+    <Card className="mt-6">
+      <CardContent>
+        <Card className="border border-gray-200 rounded-xl overflow-auto max-h-[600px] p-0">
+          <Table className="min-w-full border-separate border-spacing-0">
+            <TableHeader className="bg-gray-50 sticky top-0 z-30">
+              <TableRow className="hover:bg-gray-50 border-b border-gray-200">
+                {/* <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-r border-gray-200">
+                  Project Name
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  Status
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  Priority
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  Assigned To
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  Start Date
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  Due Date
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                  Progress (%)
+                </TableHead>
+                <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Last Update
+                </TableHead> */}
+                {executeSqlCodeData.columns.map((item, i) => (
+                  <TableHead
+                    key={i}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-r border-gray-200"
                   >
-                    {item.status}
-                  </span>
-                </TableCell>
-                <TableCell
-                  className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${item.priorityClass} border-r border-gray-200`}
-                >
-                  {item.priority}
-                </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-200">
-                  {item.assigned}
-                </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-200">
-                  {item.startDate}
-                </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-200">
-                  {item.dueDate}
-                </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-teal-600 border-r border-gray-200">
-                  {item.progress}
-                </TableCell>
-                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {item.lastUpdate}
-                </TableCell>
+                    {item}
+                  </TableHead>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
-    </CardContent>
-  </Card>
-);
+            </TableHeader>
+
+            <TableBody className="bg-white divide-y divide-gray-200">
+              {/* {sampleData.map((item, index) => (
+                <TableRow key={index} className="hover:bg-gray-50 group">
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 bg-white group-hover:bg-gray-50">
+                    {item.name}
+                  </TableCell>
+
+                  <TableCell className="px-6 py-4 whitespace-nowrap border-r border-gray-200">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${item.statusClass}`}
+                    >
+                      {item.status}
+                    </span>
+                  </TableCell>
+                  <TableCell
+                    className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${item.priorityClass} border-r border-gray-200`}
+                  >
+                    {item.priority}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-200">
+                    {item.assigned}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-200">
+                    {item.startDate}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-200">
+                    {item.dueDate}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-teal-600 border-r border-gray-200">
+                    {item.progress}
+                  </TableCell>
+                  <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {item.lastUpdate}
+                  </TableCell>
+                </TableRow>
+              ))} */}
+              {executeSqlCodeData.data.map((item, i) => (
+                <TableRow key={i} className="hover:bg-gray-50 group">
+                  {executeSqlCodeData.columns.map((itemChild, i) => (
+                    <TableCell
+                      key={i}
+                      className="px-6 py-4 whitespace-nowrap text-sm font-medium text-teal-600 border-r border-gray-200"
+                    >
+                      {item[itemChild]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default TableView;

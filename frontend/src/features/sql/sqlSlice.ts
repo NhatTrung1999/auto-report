@@ -5,7 +5,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 interface ISqlState {
   sqlData: ISqlData[];
   columns: string[];
-  executeSqlCodeData: { data: any; columns: any; rowsAffected: number };
+  executeSqlCodeData: { data: any[]; columns: any[]; rowsAffected: number };
   loading: boolean;
   error: string | null;
 }
@@ -49,7 +49,7 @@ export const executeSQLCode = createAsyncThunk(
   async (payload: ISqlCodePayload, { rejectWithValue }) => {
     try {
       const data = await sqlApi.executeSQLCode(payload);
-      return data
+      return data;
     } catch (error: any) {
       console.log(error);
       return rejectWithValue(error);
@@ -95,12 +95,12 @@ const sqlSlice = createSlice({
     builder
       .addCase(executeSQLCode.pending, (state) => {
         state.loading = true;
-        state.executeSqlCodeData = { data: [], columns: [],rowsAffected: 0 };
+        state.executeSqlCodeData = { data: [], columns: [], rowsAffected: 0 };
         state.error = null;
       })
       .addCase(executeSQLCode.fulfilled, (state, action) => {
         state.loading = false;
-        state.executeSqlCodeData = action.payload
+        state.executeSqlCodeData = action.payload;
       })
       .addCase(executeSQLCode.rejected, (state, action) => {
         state.loading = false;

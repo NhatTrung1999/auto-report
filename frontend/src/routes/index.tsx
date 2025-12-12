@@ -21,6 +21,7 @@ const AppRoutes: React.FC = () => {
       const getSqlData = async () => {
         const res = await dispatch(getCodeID(codeId));
 
+        console.log(res.payload);
         await dispatch(
           getColumns({
             host: res.payload[0]?.Host,

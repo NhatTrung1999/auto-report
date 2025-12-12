@@ -27,7 +27,7 @@ import { executeSQLCode } from '@/features/sql/sqlSlice';
 
 const ColumnsView: React.FC = () => {
   const { columns, sqlData } = useAppSelector((state) => state.sql);
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
 
   const [selectedValueColumns, setSelectedValueColumns] = useState<string[]>(
     []
@@ -39,8 +39,8 @@ const ColumnsView: React.FC = () => {
   const [valueFunction, setValueFunction] = useState<string>('SUM');
   const [clauseType, setClauseType] = useState<string>('GROUPBY');
 
-  const handleCreate = async() => {
-    const selections: { column: string; func?: string; alias?: string; }[] = [];
+  const handleCreate = async () => {
+    const selections: { column: string; func?: string; alias?: string }[] = [];
 
     if (selectedValueColumns.length > 0 && valueFunction !== 'NONE') {
       selectedValueColumns.forEach((col) => {
@@ -57,9 +57,12 @@ const ColumnsView: React.FC = () => {
       });
     }
 
-    const originalSQL = sqlData[0].SQLCode
+    const originalSQL = sqlData[0].SQLCode;
 
-    const modifiedSQL = originalSQL.replace(/^select\s+/i, "SELECT TOP 100 PERCENT ")
+    const modifiedSQL = originalSQL.replace(
+      /^select\s+/i,
+      'SELECT TOP 100 PERCENT '
+    );
 
     const payload: ISqlCodePayload = {
       host: sqlData[0].Host,
@@ -68,12 +71,10 @@ const ColumnsView: React.FC = () => {
       password: sqlData[0].PWD,
       database: sqlData[0].DBName,
       SQLCode: modifiedSQL,
-      selections
-    }
+      selections,
+    };
 
-    // console.log(payload.SQLCode);
-
-    await dispatch(executeSQLCode(payload))
+    await dispatch(executeSQLCode(payload));
   };
 
   return (
