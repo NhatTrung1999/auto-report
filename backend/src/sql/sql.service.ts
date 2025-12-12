@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConnectionPool, IResult, Request, config as SqlConfig } from 'mssql';
 import { DatabaseConfigDto } from './dto/database-config.dto';
 import { Sequelize } from 'sequelize-typescript';
@@ -14,7 +14,7 @@ interface QueryResult {
 
 @Injectable()
 export class SqlService {
-  constructor(@Inject('DATABASE') private readonly database: Sequelize) {}
+  constructor(@Inject('ERP') private readonly ERP: Sequelize) {}
 
   private readonly logger = new Logger(SqlService.name);
 
@@ -127,14 +127,14 @@ export class SqlService {
 
       if (config.selections && config.selections.length > 0) {
         finalQuery = this.generateWrappedQuery(
-          config.query,
+          config.SQLCode,
           config.selections,
           config.topN,
         );
       } else {
         finalQuery = config.topN
-          ? `SELECT TOP ${config.topN} * FROM (${config.query}) AS T`
-          : config.query;
+          ? `SELECT TOP ${config.topN} * FROM (${config.SQLCode}) AS T`
+          : config.SQLCode;
       }
 
       return await this.executeQuery(pool, finalQuery, config.params);
@@ -147,12 +147,15 @@ export class SqlService {
   }
 
   async getCodeID(codeId: string) {
-    console.log(codeId);
-    const query = `SELECT * FROM SQLData WHERE CodeID = '${codeId}'`;
-    const record = await this.database.query(query, {
+    const query = `SELECT * FROM SQLQueryData WHERE CodeID = '${codeId}'`;
+    const record = await this.ERP.query(query, {
       type: QueryTypes.SELECT,
     });
-    console.log(record);
-    // return 'codeid';
+
+    if (!record || record.length === 0) {
+      throw new NotFoundException('CodeID not found');
+    }
+
+    return record;
   }
 }

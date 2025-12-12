@@ -39,7 +39,7 @@ export class DatabaseConfigDto {
 
   @IsString()
   @IsSelectOnly()
-  query: string; 
+  SQLCode: string; 
 
   @IsOptional()
   @IsObject()

@@ -18,14 +18,11 @@ export class SqlController {
 
   @Post('columns')
   async getColumns(@Body() config: DatabaseConfigDto) {
+    console.log(config);
     const result = await this.sqlService.executeGeneralQuery(config);
 
     if (result.success) {
-      return {
-        success: true,
-        message: 'Columns fetched',
-        columns: result.columns ?? [],
-      };
+      return result.columns ?? [];
     }
 
     throw new HttpException(result.message, HttpStatus.BAD_REQUEST);
@@ -37,8 +34,6 @@ export class SqlController {
 
     if (result.success) {
       return {
-        success: true,
-        message: 'Query executed',
         data: result.data ?? [],
         columns: result.columns ?? [],
         rowsAffected: result.result?.rowsAffected[0] ?? 0,

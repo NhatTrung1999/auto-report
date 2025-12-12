@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import counterReducer from '@/features/counter/counterSlice';
+import sqlReducer from '../features/sql/sqlSlice';
 
 export const store = configureStore({
   reducer: {
-    count: counterReducer,
+    sql: sqlReducer,
   },
 });
 

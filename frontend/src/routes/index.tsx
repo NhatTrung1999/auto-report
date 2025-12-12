@@ -2,18 +2,39 @@ import ChartsView from '@/components/Charts';
 import ColumnsView from '@/components/Columns';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router';
 import NotFound from './NotFound';
+import { useAppDispatch } from '@/app/hooks';
+import { getCodeID, getColumns } from '@/features/sql/sqlSlice';
 
 const AppRoutes: React.FC = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const dispatch = useAppDispatch();
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { search } = useLocation();
   const params = new URLSearchParams(search);
   const codeId = params.get('CodeID');
 
-  console.log(codeId);
+  useEffect(() => {
+    if (codeId) {
+      const getSqlData = async () => {
+        const res = await dispatch(getCodeID(codeId));
+
+        await dispatch(
+          getColumns({
+            host: res.payload[0]?.Host,
+            port: Number(res.payload[0]?.Port),
+            username: res.payload[0]?.UserName,
+            password: res.payload[0]?.PWD,
+            database: res.payload[0]?.DBName,
+            SQLCode: res.payload[0]?.SQLCode,
+          })
+        );
+      };
+      getSqlData();
+    }
+  }, [codeId]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
