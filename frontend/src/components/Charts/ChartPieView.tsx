@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { TrendingUp } from "lucide-react"
-import { Pie, PieChart } from "recharts"
+import { TrendingUp } from 'lucide-react';
+import { Pie, PieChart } from 'recharts';
 
 import {
   Card,
@@ -10,55 +10,55 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from '@/components/ui/card';
 import {
   type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from '@/components/ui/chart';
 
-export const description = "A simple pie chart"
+export const description = 'A simple pie chart';
 
 const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
+  { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
+  { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
+  { browser: 'firefox', visitors: 187, fill: 'var(--color-firefox)' },
+  { browser: 'edge', visitors: 173, fill: 'var(--color-edge)' },
+  { browser: 'other', visitors: 90, fill: 'var(--color-other)' },
 
-  { browser: "chrome", visitors: 290, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 210, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 195, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 180, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 95, fill: "var(--color-other)" },
-]
+  { browser: 'chrome', visitors: 290, fill: 'var(--color-chrome)' },
+  { browser: 'safari', visitors: 210, fill: 'var(--color-safari)' },
+  { browser: 'firefox', visitors: 195, fill: 'var(--color-firefox)' },
+  { browser: 'edge', visitors: 180, fill: 'var(--color-edge)' },
+  { browser: 'other', visitors: 95, fill: 'var(--color-other)' },
+];
 
 const chartConfig = {
   visitors: {
-    label: "Visitors",
+    label: 'Visitors',
   },
   chrome: {
-    label: "Chrome",
-    color: "var(--chart-1)",
+    label: 'Chrome',
+    color: 'var(--chart-1)',
   },
   safari: {
-    label: "Safari",
-    color: "var(--chart-2)",
+    label: 'Safari',
+    color: 'var(--chart-2)',
   },
   firefox: {
-    label: "Firefox",
-    color: "var(--chart-3)",
+    label: 'Firefox',
+    color: 'var(--chart-3)',
   },
   edge: {
-    label: "Edge",
-    color: "var(--chart-4)",
+    label: 'Edge',
+    color: 'var(--chart-4)',
   },
   other: {
-    label: "Other",
-    color: "var(--chart-5)",
+    label: 'Other',
+    color: 'var(--chart-5)',
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function ChartPieView() {
   return (
@@ -90,5 +90,5 @@ export function ChartPieView() {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

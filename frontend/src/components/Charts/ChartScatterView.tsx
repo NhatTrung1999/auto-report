@@ -8,6 +8,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '../ui/card';
+import { TrendingUp } from 'lucide-react';
 
 const scatterData = [
   { x: 186, y: 80, month: 'January' },
@@ -33,45 +42,61 @@ const scatterChartConfig = {
 
 export function ChartScatterView() {
   return (
-    <ChartContainer
-      config={scatterChartConfig}
-      className="min-h-[200px] w-full"
-    >
-      <ScatterChart accessibilityLayer data={scatterData}>
-        <CartesianGrid vertical={false} />
+    <Card>
+      <CardHeader>
+        <CardTitle>Line Chart</CardTitle>
+        <CardDescription>January - June 2024</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer
+          config={scatterChartConfig}
+          className="min-h-[200px] w-full"
+        >
+          <ScatterChart accessibilityLayer data={scatterData}>
+            <CartesianGrid vertical={false} />
 
-        <XAxis
-          type="number"
-          dataKey="x"
-          name="Desktop Views (X)"
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-        />
+            <XAxis
+              type="number"
+              dataKey="x"
+              name="Desktop Views (X)"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+            />
 
-        <YAxis
-          type="number"
-          dataKey="y"
-          name="Mobile Views (Y)"
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-        />
+            <YAxis
+              type="number"
+              dataKey="y"
+              name="Mobile Views (Y)"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+            />
 
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent indicator="dot" nameKey="month" />}
-        />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="dot" nameKey="month" />}
+            />
 
-        <ChartLegend content={<ChartLegendContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
 
-        <Scatter
-          dataKey="dataPoint"
-          name="Monthly Metrics"
-          fill="var(--color-dataPoint)"
-          shape="circle"
-        />
-      </ScatterChart>
-    </ChartContainer>
+            <Scatter
+              dataKey="dataPoint"
+              name="Monthly Metrics"
+              fill="var(--color-dataPoint)"
+              shape="circle"
+            />
+          </ScatterChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className="flex-col items-start gap-2 text-sm">
+        <div className="flex gap-2 leading-none font-medium">
+          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+        </div>
+        <div className="text-muted-foreground leading-none">
+          Showing total visitors for the last 6 months
+        </div>
+      </CardFooter>
+    </Card>
   );
 }
