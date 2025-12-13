@@ -95,7 +95,7 @@ const CollapsibleSidebarItem: React.FC<CollapsibleItemProps> = ({
               className="flex items-center justify-between group"
             >
               <Link
-                to={child.path}
+                to={`${child.path}${location.search}`}
                 className={`block grow p-2 rounded-lg text-sm transition duration-200
                   ${
                     isActiveChild

@@ -18,6 +18,37 @@ export class SqlService {
 
   private readonly logger = new Logger(SqlService.name);
 
+  private async getColumnDataType(
+    pool: ConnectionPool,
+    tableAlias: string,
+    columnName: string,
+  ): Promise<string | null> {
+    try {
+      const metaQuery = `
+        SELECT DATA_TYPE 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE COLUMN_NAME = @colName
+        AND TABLE_NAME IN (
+          SELECT TABLE_NAME 
+          FROM INFORMATION_SCHEMA.TABLES 
+          WHERE TABLE_TYPE = 'BASE TABLE'
+        )
+      `;
+
+      const request = pool.request();
+      request.input('colName', columnName);
+      const result = await request.query(metaQuery);
+
+      if (result.recordset.length > 0) {
+        return result.recordset[0].DATA_TYPE.toLowerCase();
+      }
+      return null;
+    } catch (err) {
+      this.logger.warn(`Cannot get data type for column ${columnName}`);
+      return null;
+    }
+  }
+
   private async connect(
     config: DatabaseConfigDto,
   ): Promise<{ success: boolean; message: string; pool?: ConnectionPool }> {
@@ -78,11 +109,12 @@ export class SqlService {
     }
   }
 
-  private generateWrappedQuery(
+  private async generateWrappedQuery(
+    pool: ConnectionPool,
     originalQuery: string,
     selections: NonNullable<DatabaseConfigDto['selections']>,
     topN?: number,
-  ): string {
+  ): Promise<string> {
     if (!selections || selections.length === 0) {
       return topN
         ? `SELECT TOP ${topN} * FROM (${originalQuery}) AS T`
@@ -92,15 +124,37 @@ export class SqlService {
     const selectParts: string[] = [];
     const groupByParts: string[] = [];
 
-    selections.forEach((sel) => {
+    const numericTypes = [
+      'int',
+      'bigint',
+      'smallint',
+      'tinyint',
+      'decimal',
+      'numeric',
+      'float',
+      'real',
+      'money',
+      'smallmoney',
+    ];
+
+    for (const sel of selections) {
       if (sel.func) {
+        const funcUpper = sel.func.toUpperCase();
+        if (['SUM', 'AVG', 'MIN', 'MAX'].includes(funcUpper)) {
+          const dataType = await this.getColumnDataType(pool, '', sel.column);
+          if (dataType && !numericTypes.includes(dataType)) {
+            throw new Error(
+              `Không thể dùng hàm ${sel.func} cho cột "${sel.column}" vì kiểu dữ liệu là "${dataType}".`,
+            );
+          }
+        }
         const alias = sel.alias || `${sel.func}_${sel.column}`;
         selectParts.push(`${sel.func}([${sel.column}]) AS [${alias}]`);
       } else {
         selectParts.push(`[${sel.column}]`);
         groupByParts.push(`[${sel.column}]`);
       }
-    });
+    }
 
     const topClause = topN ? `TOP ${topN} ` : '';
     let query = `SELECT ${topClause}${selectParts.join(', ')}\nFROM (${originalQuery}) AS SubQuery`;
@@ -126,7 +180,8 @@ export class SqlService {
       let finalQuery: string;
 
       if (config.selections && config.selections.length > 0) {
-        finalQuery = this.generateWrappedQuery(
+        finalQuery = await this.generateWrappedQuery(
+          pool,
           config.SQLCode,
           config.selections,
           config.topN,
@@ -140,7 +195,11 @@ export class SqlService {
       return await this.executeQuery(pool, finalQuery, config.params);
     } catch (error: any) {
       this.logger.error(`Execute error: ${error.message}`);
-      return { success: false, message: error.message, columns: [] };
+      return {
+        success: false,
+        message: error.message || 'Lỗi thực thi query',
+        columns: [],
+      };
     } finally {
       if (pool) await pool.close();
     }

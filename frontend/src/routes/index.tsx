@@ -7,6 +7,7 @@ import { Route, Routes, useLocation } from 'react-router';
 import NotFound from './NotFound';
 import { useAppDispatch } from '@/app/hooks';
 import { getCodeID, getColumns } from '@/features/sql/sqlSlice';
+import { Toaster } from '@/components/ui/sonner';
 
 const AppRoutes: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -21,7 +22,8 @@ const AppRoutes: React.FC = () => {
       const getSqlData = async () => {
         const res = await dispatch(getCodeID(codeId));
 
-        console.log(res.payload);
+        if (!res.payload?.[0]) return;
+
         await dispatch(
           getColumns({
             host: res.payload[0]?.Host,
@@ -48,28 +50,31 @@ const AppRoutes: React.FC = () => {
   const sidebarWidthClass = 'lg:ml-64';
 
   return (
-    <div className="flex min-h-svh flex-col bg-gray-100 text-gray-800">
-      <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+    <>
+      <div className="flex min-h-svh flex-col bg-gray-100 text-gray-800">
+        <Header toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
 
-      <div className="flex flex-1 pt-16">
-        <Sidebar isOpen={isSidebarOpen} setClose={closeSidebar} />
+        <div className="flex flex-1 pt-16">
+          <Sidebar isOpen={isSidebarOpen} setClose={closeSidebar} />
 
-        <main
-          className={`
+          <main
+            className={`
             flex flex-1 flex-col p-8 overflow-y-auto 
             transition-all duration-300 ease-in-out
             ml-0
             ${isSidebarOpen ? sidebarWidthClass : 'lg:ml-0'} 
           `}
-        >
-          <Routes>
-            <Route path="/" element={<ColumnsView />} />
-            <Route path="/charts/:type" element={<ChartsView />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
+          >
+            <Routes>
+              <Route path="/" element={<ColumnsView />} />
+              <Route path="/charts/:type" element={<ChartsView />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-    </div>
+      <Toaster position="top-right" duration={3000} />
+    </>
   );
 };
 

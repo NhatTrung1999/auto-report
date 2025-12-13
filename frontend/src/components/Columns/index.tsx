@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -21,12 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ISqlCodePayload } from '@/types/sql';
 import { executeSQLCode } from '@/features/sql/sqlSlice';
+import { toast } from 'sonner';
 
 const ColumnsView: React.FC = () => {
-  const { columns, sqlData } = useAppSelector((state) => state.sql);
+  const { columns, sqlData, error } = useAppSelector((state) => state.sql);
   const dispatch = useAppDispatch();
 
   const [selectedValueColumns, setSelectedValueColumns] = useState<string[]>(
@@ -35,19 +37,28 @@ const ColumnsView: React.FC = () => {
   const [selectedClauseColumns, setSelectedClauseColumns] = useState<string[]>(
     []
   );
+  const [open, setOpen] = useState<boolean>(false);
 
-  const [valueFunction, setValueFunction] = useState<string>('SUM');
-  const [clauseType, setClauseType] = useState<string>('GROUPBY');
+  const [valueFunction, setValueFunction] = useState<string>('NONE');
+  const [clauseType, setClauseType] = useState<string>('NONE');
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {className: 'bg-green-600 text-white border border-green-300'});
+    }
+  }, [error]);
 
   const handleCreate = async () => {
-    const selections: { column: string; func?: string; alias?: string }[] = [];
+    setOpen(false);
+
+    const selections: { column: string; func?: string; alias?: string; }[] = [];
 
     if (selectedValueColumns.length > 0 && valueFunction !== 'NONE') {
       selectedValueColumns.forEach((col) => {
         selections.push({
           column: col,
           func: valueFunction === 'AVERAGE' ? 'AVG' : valueFunction,
-          alias: `${valueFunction} ${col}`,
+          alias: `${valueFunction}_${col}`,
         });
       });
     }
@@ -83,7 +94,7 @@ const ColumnsView: React.FC = () => {
         Columns View
       </h2>
       <div className="flex items-center justify-end">
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
           <form>
             <DialogTrigger asChild>
               <Button variant="outline">Auto columns</Button>
@@ -91,6 +102,10 @@ const ColumnsView: React.FC = () => {
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Auto columns</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Chọn các cột để áp dụng hàm tổng hợp (SUM, AVG, MIN, MAX) hoặc
+                  nhóm dữ liệu theo GROUP BY.
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4">
                 <div className="grid gap-3">

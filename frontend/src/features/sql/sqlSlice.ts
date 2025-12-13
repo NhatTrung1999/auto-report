@@ -52,7 +52,7 @@ export const executeSQLCode = createAsyncThunk(
       return data;
     } catch (error: any) {
       console.log(error);
-      return rejectWithValue(error);
+      return rejectWithValue(error?.response?.data?.message || 'Created Table failed!');
     }
   }
 );

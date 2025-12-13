@@ -1,6 +1,7 @@
 import CollapsibleSidebarItem from './CollapsibleSidebarItem';
 import SidebarItem from './SidebarItem';
 import { TableIcon, PieChartIcon } from '../../assets/icons';
+import { useLocation } from 'react-router';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,12 +9,14 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setClose }) => {
+  const location = useLocation();
+
   const chartOptions = [
     { path: '/charts/line', label: 'Line' },
     { path: '/charts/bar', label: 'Bar' },
     { path: '/charts/pie', label: 'Pie' },
     { path: '/charts/scatter', label: 'Scatter' },
-  ];
+  ]
 
   return (
     <>
@@ -34,7 +37,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setClose }) => {
             `}
       >
         <nav className="p-4 space-y-2">
-          <SidebarItem icon={<TableIcon />} label="Columns View" to="/" />
+          <SidebarItem
+            icon={<TableIcon />}
+            label="Columns View"
+            to={`/${location.search}`}
+          />
 
           <CollapsibleSidebarItem
             icon={<PieChartIcon />}
