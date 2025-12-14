@@ -1,7 +1,7 @@
 'use client';
 
 import { TrendingUp } from 'lucide-react';
-import { Pie, PieChart } from 'recharts';
+import { Pie, PieChart, Cell } from 'recharts';
 
 import {
   Card,
@@ -17,78 +17,149 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { useAppSelector } from '@/app/hooks';
 
-export const description = 'A simple pie chart';
-
-const chartData = [
-  { browser: 'chrome', visitors: 275, fill: 'var(--color-chrome)' },
-  { browser: 'safari', visitors: 200, fill: 'var(--color-safari)' },
-  { browser: 'firefox', visitors: 187, fill: 'var(--color-firefox)' },
-  { browser: 'edge', visitors: 173, fill: 'var(--color-edge)' },
-  { browser: 'other', visitors: 90, fill: 'var(--color-other)' },
-
-  { browser: 'chrome', visitors: 290, fill: 'var(--color-chrome)' },
-  { browser: 'safari', visitors: 210, fill: 'var(--color-safari)' },
-  { browser: 'firefox', visitors: 195, fill: 'var(--color-firefox)' },
-  { browser: 'edge', visitors: 180, fill: 'var(--color-edge)' },
-  { browser: 'other', visitors: 95, fill: 'var(--color-other)' },
+const COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
 ];
 
-const chartConfig = {
-  visitors: {
-    label: 'Visitors',
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'var(--chart-1)',
-  },
-  safari: {
-    label: 'Safari',
-    color: 'var(--chart-2)',
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'var(--chart-3)',
-  },
-  edge: {
-    label: 'Edge',
-    color: 'var(--chart-4)',
-  },
-  other: {
-    label: 'Other',
-    color: 'var(--chart-5)',
-  },
-} satisfies ChartConfig;
+const ChartPieView: React.FC = () => {
+  const { executeSqlCodeData, chartConfig, loading, error } = useAppSelector(
+    (state) => state.sql
+  );
 
-export function ChartPieView() {
+  const data = executeSqlCodeData.data || [];
+  const columns = executeSqlCodeData.columns || [];
+
+  // Dùng config từ Properties cho Pie: Value (số) + Label (tên)
+  const valueKey =
+    chartConfig.value ||
+    columns.find((col) => typeof data[0]?.[col] === 'number') ||
+    columns[1] ||
+    '';
+  const labelKey = chartConfig.label || columns[0] || '';
+
+  // Chuẩn bị dữ liệu cho Pie Chart
+  const pieData = data
+    .map((item: any) => ({
+      name: item[labelKey] || 'Unknown',
+      value: Number(item[valueKey]) || 0,
+    }))
+    .filter((item: any) => item.value > 0);
+
+  // Config động
+  const dynamicChartConfig: ChartConfig = {
+    value: {
+      label: valueKey,
+    },
+  };
+
+  // Gán màu cho từng slice
+  pieData.forEach((_: any, index: number) => {
+    const name = pieData[index].name;
+    dynamicChartConfig[name] = {
+      label: name,
+      color: COLORS[index % COLORS.length],
+    };
+  });
+
+  if (loading) {
+    return (
+      <Card className="flex flex-col">
+        <CardHeader className="items-center pb-0">
+          <CardTitle>Pie Chart</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 pb-0 flex items-center justify-center h-96">
+          <p className="text-gray-500">Loading data...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="flex flex-col">
+        <CardHeader className="items-center pb-0">
+          <CardTitle>Pie Chart</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 pb-0 flex items-center justify-center h-96">
+          <p className="text-red-500">Error: {error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (pieData.length === 0 || !valueKey || !labelKey) {
+    return (
+      <Card className="flex flex-col">
+        <CardHeader className="items-center pb-0">
+          <CardTitle>Pie Chart</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 pb-0 flex items-center justify-center h-96">
+          <p className="text-gray-500">
+            No data. Run a query and set Value/Label in Properties.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const total = pieData.reduce((sum: number, item: any) => sum + item.value, 0);
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
         <CardTitle>Pie Chart</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardDescription>
+          Distribution of {valueKey} by {labelKey} ({pieData.length} items)
+        </CardDescription>
       </CardHeader>
+
       <CardContent className="flex-1 pb-0">
         <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[250px]"
+          config={dynamicChartConfig}
+          className="mx-auto aspect-square max-h-[350px]"
         >
           <PieChart>
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Pie data={chartData} dataKey="visitors" nameKey="browser" />
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={120}
+              label={({ name, value }) => `${name}: ${value}`}
+            >
+              {pieData.map((_, index: number) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={COLORS[index % COLORS.length]}
+                />
+              ))}
+            </Pie>
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+
+      <CardFooter className="flex-col items-center gap-2 text-sm">
+        <div className="flex gap-2 font-medium leading-none">
+          Total {valueKey}: {total.toLocaleString()}
+          <TrendingUp className="h-4 w-4" />
         </div>
         <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
+          Data from your latest query
         </div>
       </CardFooter>
     </Card>
   );
-}
+};
+
+export default ChartPieView;

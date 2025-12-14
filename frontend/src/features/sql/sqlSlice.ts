@@ -1,11 +1,21 @@
 import sqlApi from '@/api/sqlApi';
 import type { ISqlCodePayload, ISqlData } from '@/types/sql';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from '@reduxjs/toolkit';
 
 interface ISqlState {
   sqlData: ISqlData[];
   columns: string[];
   executeSqlCodeData: { data: any[]; columns: any[]; rowsAffected: number };
+  chartConfig: {
+    xAxis?: string;
+    yAxis?: string;
+    value?: string;
+    label?: string;
+  };
   loading: boolean;
   error: string | null;
 }
@@ -14,6 +24,7 @@ const initialState: ISqlState = {
   sqlData: [],
   columns: [],
   executeSqlCodeData: { data: [], columns: [], rowsAffected: 0 },
+  chartConfig: {},
   loading: false,
   error: null,
 };
@@ -52,7 +63,9 @@ export const executeSQLCode = createAsyncThunk(
       return data;
     } catch (error: any) {
       console.log(error);
-      return rejectWithValue(error?.response?.data?.message || 'Created Table failed!');
+      return rejectWithValue(
+        error?.response?.data?.message || 'Created Table failed!'
+      );
     }
   }
 );
@@ -60,7 +73,17 @@ export const executeSQLCode = createAsyncThunk(
 const sqlSlice = createSlice({
   name: 'sql',
   initialState,
-  reducers: {},
+  reducers: {
+    clearChartConfig: (state) => {
+      state.chartConfig = {};
+    },
+    setChartConfig: (
+      state,
+      action: PayloadAction<ISqlState['chartConfig']>
+    ) => {
+      state.chartConfig = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getCodeID.pending, (state) => {
@@ -108,5 +131,7 @@ const sqlSlice = createSlice({
       });
   },
 });
+
+export const { clearChartConfig, setChartConfig } = sqlSlice.actions;
 
 export default sqlSlice.reducer;
