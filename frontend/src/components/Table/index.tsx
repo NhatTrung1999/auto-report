@@ -9,6 +9,17 @@ import {
   TableRow,
 } from '../ui/table';
 import { Skeleton } from '../ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { useState } from 'react';
+import { Button } from '../ui/button';
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 
 const TableSkeleton: React.FC = () => (
   <TableBody>
@@ -41,10 +52,54 @@ const formatDateValue = (value: any): string | any => {
 const TableView: React.FC = () => {
   const { executeSqlCodeData, loading } = useAppSelector((state) => state.sql);
 
-  const hasData =
-    executeSqlCodeData?.data && executeSqlCodeData.data.length > 0;
-  const hasColumns =
-    executeSqlCodeData?.columns && executeSqlCodeData.columns.length > 0;
+  const rawData = executeSqlCodeData?.data || [];
+  const columns = executeSqlCodeData?.columns || [];
+
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
+
+  const handleSort = (column: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (
+      sortConfig &&
+      sortConfig.key === column &&
+      sortConfig.direction === 'asc'
+    ) {
+      direction = 'desc';
+    }
+    setSortConfig({ key: column, direction });
+  };
+
+  const sortedData = [...rawData].sort((a, b) => {
+    if (!sortConfig) return 0;
+
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
+
+    if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+
+    const aNum = Number(aValue);
+    const bNum = Number(bValue);
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+    }
+
+    const aStr = String(aValue).toLowerCase();
+    const bStr = String(bValue).toLowerCase();
+    return sortConfig.direction === 'asc'
+      ? aStr.localeCompare(bStr)
+      : bStr.localeCompare(aStr);
+  });
+
+  const hasData = sortedData.length > 0;
+  const hasColumns = columns.length > 0;
+  // const hasData =
+  //   executeSqlCodeData?.data && executeSqlCodeData.data.length > 0;
+  // const hasColumns =
+  //   executeSqlCodeData?.columns && executeSqlCodeData.columns.length > 0;
 
   return (
     <Card className="mt-6">
@@ -53,23 +108,49 @@ const TableView: React.FC = () => {
           <Table className="min-w-full border-separate border-spacing-0">
             <TableHeader className="bg-gray-50 sticky top-0 z-30">
               <TableRow className="hover:bg-gray-50 border-b border-gray-200">
-                {/* {executeSqlCodeData.columns.map((item, i) => (
-                  <TableHead
-                    key={i}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-r border-gray-200"
-                  >
-                    {item}
-                  </TableHead>
-                ))} */}
                 {loading || hasColumns ? (
-                  executeSqlCodeData.columns.map((item, i) => (
-                    <TableHead
-                      key={i}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-r border-gray-200"
-                    >
-                      {item}
-                    </TableHead>
-                  ))
+                  columns.map((column, i) => {
+                    const isSorted = sortConfig?.key === column;
+                    const isAsc = isSorted && sortConfig?.direction === 'asc';
+                    const isDesc = isSorted && sortConfig?.direction === 'desc';
+                    return (
+                      <TableHead
+                        key={i}
+                        className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-r border-gray-200"
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost">
+                              <span>{column}</span>
+                              {isSorted ? (
+                                isAsc ? (
+                                  <ArrowUp className="ml-2 h-4 w-4" />
+                                ) : (
+                                  <ArrowDown className="ml-2 h-4 w-4" />
+                                )
+                              ) : (
+                                <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuItem
+                              onClick={() => handleSort(column)}
+                            >
+                              <ArrowUp className="mr-1 size-4" />
+                              Asc
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleSort(column)}
+                            >
+                              <ArrowDown className="mr-1 size-4" />
+                              Desc
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableHead>
+                    );
+                  })
                 ) : (
                   <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Result
@@ -82,14 +163,14 @@ const TableView: React.FC = () => {
               <TableSkeleton />
             ) : hasData ? (
               <TableBody className="bg-white divide-y divide-gray-200">
-                {executeSqlCodeData.data.map((item, i) => (
+                {sortedData.map((row, i) => (
                   <TableRow key={i} className="hover:bg-gray-50 group">
-                    {executeSqlCodeData.columns.map((itemChild, i) => (
+                    {columns.map((col, i) => (
                       <TableCell
                         key={i}
                         className="px-6 py-4 whitespace-nowrap text-sm font-medium text-teal-600 border-r border-gray-200"
                       >
-                        {formatDateValue(item[itemChild])}
+                        {formatDateValue(row[col])}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -107,21 +188,6 @@ const TableView: React.FC = () => {
                 </TableRow>
               </TableBody>
             )}
-
-            {/* <TableBody className="bg-white divide-y divide-gray-200">
-              {executeSqlCodeData.data.map((item, i) => (
-                <TableRow key={i} className="hover:bg-gray-50 group">
-                  {executeSqlCodeData.columns.map((itemChild, i) => (
-                    <TableCell
-                      key={i}
-                      className="px-6 py-4 whitespace-nowrap text-sm font-medium text-teal-600 border-r border-gray-200"
-                    >
-                      {item[itemChild]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody> */}
           </Table>
         </Card>
       </CardContent>

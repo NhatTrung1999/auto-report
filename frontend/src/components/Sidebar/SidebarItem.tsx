@@ -9,7 +9,6 @@ interface SidebarItemProps {
 
 const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to }) => {
   const location = useLocation();
-  console.log(to);
   const active = location.pathname === to.split('?')[0];
 
   return (

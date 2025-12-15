@@ -4,7 +4,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => (
-  <header className="flex items-center justify-between p-4 bg-white border-b border-gray-200 shadow-md fixed w-full z-30">
+  <header className="flex items-center justify-between p-4 bg-white border-b border-gray-200 shadow-md fixed w-full z-60">
     <div className=" flex-1 flex items-center justify-between">
       <button
         onClick={toggleSidebar}

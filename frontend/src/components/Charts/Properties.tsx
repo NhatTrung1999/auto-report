@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
@@ -93,8 +94,8 @@ const Properties: React.FC = () => {
       <DialogTrigger asChild>
         <Button variant="outline">Properties</Button>
       </DialogTrigger>
-
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogOverlay className='z-70 bg-black/10' />
+      <DialogContent className="sm:max-w-[425px] z-80">
         <DialogHeader>
           <DialogTitle>Chart Properties</DialogTitle>
           <DialogDescription className="sr-only">

@@ -205,8 +205,9 @@ export class SqlService {
     }
   }
 
-  async getCodeID(codeId: string) {
-    const query = `SELECT * FROM SQLQueryData WHERE CodeID = '${codeId}'`;
+  async getCodeID(codeId: string, ip: string) {
+    // const query = `SELECT * FROM SQLQueryData WHERE CodeID = '${codeId}' AND ClientIP = '${ip}'`;
+    const query = `SELECT * FROM SQLQueryData WHERE CodeID = '${codeId}' AND ClientIP = '${ip}'`;
     const record = await this.ERP.query(query, {
       type: QueryTypes.SELECT,
     });
