@@ -9,7 +9,7 @@ interface QueryResult {
   message: string;
   result?: IResult<any>;
   data?: any[];
-  columns?: string[];
+  columns?: { name: string; dataType: string }[];
 }
 
 @Injectable()
@@ -94,7 +94,13 @@ export class SqlService {
 
       const result = await request.query(query);
       const columns = result.recordset.columns
-        ? Object.keys(result.recordset.columns)
+        ? Object.keys(result.recordset.columns).map((key) => {
+            const col = result.recordset.columns[key];
+            return {
+              name: col.name,
+              dataType: this.getTypeName(col),
+            };
+          })
         : [];
 
       return {
@@ -140,7 +146,7 @@ export class SqlService {
     for (const sel of selections) {
       if (sel.func) {
         const funcUpper = sel.func.toUpperCase();
-        if (['SUM', 'AVG', 'MIN', 'MAX'].includes(funcUpper)) {
+        if (['SUM', 'AVG'].includes(funcUpper)) {
           const dataType = await this.getColumnDataType(pool, '', sel.column);
           if (dataType && !numericTypes.includes(dataType)) {
             throw new Error(
@@ -207,7 +213,7 @@ export class SqlService {
 
   async getCodeID(codeId: string, ip: string) {
     // const query = `SELECT * FROM SQLQueryData WHERE CodeID = '${codeId}' AND ClientIP = '${ip}'`;
-    const query = `SELECT * FROM SQLQueryData WHERE CodeID = '${codeId}' AND ClientIP = '${ip}'`;
+    const query = `SELECT * FROM SQLQueryData WHERE CodeID = '${codeId}'`;
     const record = await this.ERP.query(query, {
       type: QueryTypes.SELECT,
     });
@@ -218,4 +224,22 @@ export class SqlService {
 
     return record;
   }
+
+  getTypeName = (col: any): string => {
+    if (!col?.type) return 'unknown';
+
+    if (typeof col.type.name === 'string') {
+      return col.type.name.toLowerCase();
+    }
+
+    if (typeof col.type === 'function') {
+      return (col.type.name || 'unknown').toLowerCase();
+    }
+
+    const typeStr = col.type.toString();
+    const match = typeStr.match(/function\s+([^(]+)\(/);
+    if (match) return match[1].trim().toLowerCase();
+
+    return 'unknown';
+  };
 }

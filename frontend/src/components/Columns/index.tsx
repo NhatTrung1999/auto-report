@@ -20,9 +20,7 @@ import { Label } from '../ui/label';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
@@ -65,6 +63,12 @@ const ColumnsView: React.FC = () => {
 
     const selections: { column: string; func?: string; alias?: string }[] = [];
 
+    if (selectedClauseColumns.length > 0) {
+      selectedClauseColumns.forEach((col) => {
+        selections.push({ column: col });
+      });
+    }
+
     Object.entries(columnFunctions).forEach(([column, func]) => {
       if (func && func !== 'NONE') {
         const actualFunc = func === 'AVERAGE' ? 'AVG' : func;
@@ -75,12 +79,6 @@ const ColumnsView: React.FC = () => {
         });
       }
     });
-
-    if (selectedClauseColumns.length > 0) {
-      selectedClauseColumns.forEach((col) => {
-        selections.push({ column: col });
-      });
-    }
 
     let modifiedSQL = sqlData[0].SQLCode.trim();
     if (!modifiedSQL.match(/^SELECT\s+TOP\s+100\s+PERCENT/i)) {
@@ -104,8 +102,6 @@ const ColumnsView: React.FC = () => {
     dispatch(executeSQLCode(payload));
   };
 
-  console.log(columns, sqlData);
-
   return (
     <>
       <h2 className="text-3xl font-medium mb-6 text-gray-700 border-b border-gray-300 pb-2">
@@ -117,7 +113,7 @@ const ColumnsView: React.FC = () => {
           <DialogTrigger asChild>
             <Button variant="outline">Auto columns</Button>
           </DialogTrigger>
-          <DialogOverlay className='z-70 bg-black/10' />
+          <DialogOverlay className="z-70 bg-black/10" />
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col z-80">
             <DialogHeader>
               <DialogTitle>Auto columns</DialogTitle>
@@ -130,34 +126,36 @@ const ColumnsView: React.FC = () => {
             <div className="flex-1 overflow-y-auto pr-1 no-scrollbar">
               <div className="grid gap-6 py-4">
                 <div className="grid gap-3">
-                  <Label className="text-base font-semibold">Option Columns</Label>
+                  <Label className="text-base font-semibold">
+                    Option Columns
+                  </Label>
 
                   <div className="rounded-2xl border border-gray-200 bg-white h-[200px] p-2 overflow-y-auto no-scrollbar flex flex-col gap-2">
                     {columns.map((column) => (
                       <Label
-                        key={column}
+                        key={column.name}
                         className="hover:bg-accent/50 flex items-center gap-3 rounded-lg border p-3 has-aria-checked:border-blue-600 has-aria-checked:bg-blue-50"
                       >
                         <Checkbox
-                          checked={selectedClauseColumns.includes(column)}
+                          checked={selectedClauseColumns.includes(column.name)}
                           onCheckedChange={(checked) => {
                             if (checked) {
                               setSelectedClauseColumns((prev) => [
                                 ...prev,
-                                column,
+                                column.name,
                               ]);
                             } else {
                               setSelectedClauseColumns((prev) =>
-                                prev.filter((c) => c !== column)
+                                prev.filter((c) => c !== column.name)
                               );
                             }
                           }}
                         />
-                        <p className="text-sm font-medium">{column}</p>
+                        <p className="text-sm font-medium">{column.name}</p>
                       </Label>
                     ))}
                   </div>
-{/* 
+                  {/* 
                   <Select value={clauseType} onValueChange={setClauseType}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Choose option" />
@@ -181,11 +179,36 @@ const ColumnsView: React.FC = () => {
                   <div className="rounded-2xl border border-gray-200 bg-white h-[200px] p-3 overflow-y-auto no-scrollbar">
                     {columns.map((column, index) => {
                       const isLast = index === columns.length - 1;
-                      const currentFunc = columnFunctions[column] || 'NONE';
+                      const currentFunc =
+                        columnFunctions[column.name] || 'NONE';
+
+                      const dataType = column.dataType?.toLowerCase() || '';
+                      const numericTypes = [
+                        'int',
+                        'bigint',
+                        'smallint',
+                        'tinyint',
+                        'decimal',
+                        'numeric',
+                        'float',
+                        'real',
+                        'money',
+                        'smallmoney',
+                        'bit',
+                      ];
+                      const isNumeric = numericTypes.some((type) =>
+                        dataType.includes(type)
+                      );
+
+                      const defaultFunc = isNumeric ? 'SUM' : 'MIN';
+
+                      const allowedFunctions = isNumeric
+                        ? ['NONE', 'SUM', 'AVERAGE', 'MIN', 'MAX', 'COUNT']
+                        : ['NONE', 'MIN', 'MAX', 'COUNT'];
 
                       return (
                         <Label
-                          key={column}
+                          key={column.name}
                           className={`flex items-center gap-4 p-2 border rounded-lg ${
                             !isLast ? 'mb-2' : ''
                           } hover:bg-gray-50`}
@@ -196,12 +219,12 @@ const ColumnsView: React.FC = () => {
                               if (checked) {
                                 setColumnFunctions((prev) => ({
                                   ...prev,
-                                  [column]: 'SUM',
+                                  [column.name]: defaultFunc,
                                 }));
                               } else {
                                 setColumnFunctions((prev) => {
                                   const newObj = { ...prev };
-                                  delete newObj[column];
+                                  delete newObj[column.name];
                                   return newObj;
                                 });
                               }
@@ -210,9 +233,9 @@ const ColumnsView: React.FC = () => {
 
                           <span
                             className="flex-1 font-medium text-sm truncate"
-                            title={column}
+                            title={column.name}
                           >
-                            {column}
+                            {column.name}
                           </span>
 
                           <Select
@@ -221,13 +244,13 @@ const ColumnsView: React.FC = () => {
                               if (val === 'NONE') {
                                 setColumnFunctions((prev) => {
                                   const newObj = { ...prev };
-                                  delete newObj[column];
+                                  delete newObj[column.name];
                                   return newObj;
                                 });
                               } else {
                                 setColumnFunctions((prev) => ({
                                   ...prev,
-                                  [column]: val,
+                                  [column.name]: val,
                                 }));
                               }
                             }}
@@ -236,13 +259,12 @@ const ColumnsView: React.FC = () => {
                             <SelectTrigger className="w-[140px]">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className='z-90'>
-                              <SelectItem value="NONE">NONE</SelectItem>
-                              <SelectItem value="SUM">SUM</SelectItem>
-                              <SelectItem value="AVERAGE">AVERAGE</SelectItem>
-                              <SelectItem value="MIN">MIN</SelectItem>
-                              <SelectItem value="MAX">MAX</SelectItem>
-                              <SelectItem value="COUNT">COUNT</SelectItem>
+                            <SelectContent className="z-90">
+                              {allowedFunctions.map((func) => (
+                                <SelectItem key={func} value={func}>
+                                  {func === 'AVERAGE' ? 'AVERAGE' : func}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </Label>
@@ -274,10 +296,7 @@ const ColumnsView: React.FC = () => {
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
-              <Button
-                onClick={handleCreate}
-                className="bg-black"
-              >
+              <Button onClick={handleCreate} className="bg-black">
                 Create
               </Button>
             </DialogFooter>

@@ -29,13 +29,15 @@ const ChartScatterView: React.FC = () => {
   const data = executeSqlCodeData.data || [];
   const columns = executeSqlCodeData.columns || [];
 
+  const columnNames = columns.map((col) => col.name);
+
   // Dùng config từ Properties, fallback về cột đầu/thứ hai
-  const xKey = chartConfig.xAxis || columns[0] || '';
-  const yKey = chartConfig.yAxis || columns[1] || '';
+  const xKey = chartConfig.xAxis || columnNames[0] || '';
+  const yKey = chartConfig.yAxis || columnNames[1] || '';
 
   // Config động cho legend và tooltip
   const dynamicChartConfig: ChartConfig = {};
-  columns.forEach((col: string, index: number) => {
+  columnNames.forEach((col: string, index: number) => {
     dynamicChartConfig[col] = {
       label: col,
       color: `var(--chart-${(index % 5) + 1})`,
@@ -140,9 +142,6 @@ const ChartScatterView: React.FC = () => {
         <div className="flex gap-2 font-medium leading-none">
           Showing correlation between {xKey} and {yKey}
           <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Data from your latest query
         </div>
       </CardFooter>
     </Card>

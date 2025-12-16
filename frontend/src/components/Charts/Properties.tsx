@@ -89,6 +89,7 @@ const Properties: React.FC = () => {
     );
   };
 
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -116,11 +117,11 @@ const Properties: React.FC = () => {
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={prop.placeholder} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-90">
                   <SelectGroup>
                     {executeSqlCodeData.columns.map((column) => (
-                      <SelectItem key={column} value={column}>
-                        {column}
+                      <SelectItem key={column.name} value={column.name}>
+                        {column.name}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -139,7 +140,7 @@ const Properties: React.FC = () => {
               handleSave();
               setOpen(false);
             }}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-black"
           >
             Save
           </Button>

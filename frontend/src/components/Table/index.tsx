@@ -13,8 +13,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { useState } from 'react';
@@ -35,15 +33,11 @@ const TableSkeleton: React.FC = () => (
   </TableBody>
 );
 
-const formatDateValue = (value: any): string | any => {
+const formatDateValue = (value: any): any => {
   if (typeof value === 'string' && value.includes('T')) {
-    try {
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) {
-        return value.split('T')[0];
-      }
-    } catch (e) {
-      console.log(e);
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) {
+      return value.replace('T', ' ').replace('.000Z', '');
     }
   }
   return value;
@@ -110,9 +104,9 @@ const TableView: React.FC = () => {
               <TableRow className="hover:bg-gray-50 border-b border-gray-200">
                 {loading || hasColumns ? (
                   columns.map((column, i) => {
-                    const isSorted = sortConfig?.key === column;
+                    const isSorted = sortConfig?.key === column.name;
                     const isAsc = isSorted && sortConfig?.direction === 'asc';
-                    const isDesc = isSorted && sortConfig?.direction === 'desc';
+                    // const isDesc = isSorted && sortConfig?.direction === 'desc';
                     return (
                       <TableHead
                         key={i}
@@ -121,7 +115,7 @@ const TableView: React.FC = () => {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost">
-                              <span>{column}</span>
+                              <span>{column.name}</span>
                               {isSorted ? (
                                 isAsc ? (
                                   <ArrowUp className="ml-2 h-4 w-4" />
@@ -135,13 +129,13 @@ const TableView: React.FC = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start">
                             <DropdownMenuItem
-                              onClick={() => handleSort(column)}
+                              onClick={() => handleSort(column.name)}
                             >
                               <ArrowUp className="mr-1 size-4" />
                               Asc
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleSort(column)}
+                              onClick={() => handleSort(column.name)}
                             >
                               <ArrowDown className="mr-1 size-4" />
                               Desc
@@ -170,7 +164,7 @@ const TableView: React.FC = () => {
                         key={i}
                         className="px-6 py-4 whitespace-nowrap text-sm font-medium text-teal-600 border-r border-gray-200"
                       >
-                        {formatDateValue(row[col])}
+                        {formatDateValue(row[col.name])}
                       </TableCell>
                     ))}
                   </TableRow>

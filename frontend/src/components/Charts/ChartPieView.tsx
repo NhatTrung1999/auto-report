@@ -35,13 +35,15 @@ const ChartPieView: React.FC = () => {
   const data = executeSqlCodeData.data || [];
   const columns = executeSqlCodeData.columns || [];
 
+  const columnNames = columns.map((col) => col.name);
+
   // Dùng config từ Properties cho Pie: Value (số) + Label (tên)
   const valueKey =
     chartConfig.value ||
-    columns.find((col) => typeof data[0]?.[col] === 'number') ||
-    columns[1] ||
+    columnNames.find((col) => typeof data[0]?.[col] === 'number') ||
+    columnNames[1] ||
     '';
-  const labelKey = chartConfig.label || columns[0] || '';
+  const labelKey = chartConfig.label || columnNames[0] || '';
 
   // Chuẩn bị dữ liệu cho Pie Chart
   const pieData = data
@@ -109,6 +111,8 @@ const ChartPieView: React.FC = () => {
   }
 
   const total = pieData.reduce((sum: number, item: any) => sum + item.value, 0);
+
+  console.log(total);
 
   return (
     <Card className="flex flex-col">

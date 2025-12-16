@@ -1,7 +1,7 @@
 'use client';
 
 import { TrendingUp } from 'lucide-react';
-import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import {
   Card,
@@ -27,13 +27,15 @@ const ChartLineView: React.FC = () => {
   const data = executeSqlCodeData.data || [];
   const columns = executeSqlCodeData.columns || [];
 
+  const columnNames = columns.map((col) => col.name);
+
   // Dùng config từ Properties, fallback về cột đầu/thứ hai
-  const xKey = chartConfig.xAxis || columns[0] || '';
-  const yKey = chartConfig.yAxis || columns[1] || '';
+  const xKey = chartConfig.xAxis || columnNames[0] || '';
+  const yKey = chartConfig.yAxis || columnNames[1] || '';
 
   // Config động cho tooltip
   const dynamicChartConfig: ChartConfig = {};
-  columns.forEach((col: string, index: number) => {
+  columnNames.forEach((col: string, index: number) => {
     dynamicChartConfig[col] = {
       label: col,
       color: `var(--chart-${(index % 5) + 1})`,
@@ -86,8 +88,6 @@ const ChartLineView: React.FC = () => {
     0
   );
 
-  console.log(executeSqlCodeData);
-
   return (
     <Card>
       <CardHeader>
@@ -110,6 +110,14 @@ const ChartLineView: React.FC = () => {
                 typeof value === 'string' ? value.slice(0, 10) : value
               }
             />
+            <YAxis
+              domain={[
+                (min: number) => Math.min(0, min),
+                (max: number) => max * 1.1,
+              ]}
+              tickLine={false}
+              axisLine={false}
+            />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <Line
               dataKey={yKey}
@@ -127,7 +135,6 @@ const ChartLineView: React.FC = () => {
           Total {yKey}: {total.toLocaleString()}
           <TrendingUp className="h-4 w-4" />
         </div>
-        <div className="text-muted-foreground">Data from latest query</div>
       </CardFooter>
     </Card>
   );

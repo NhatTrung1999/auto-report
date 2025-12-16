@@ -8,8 +8,12 @@ import {
 
 interface ISqlState {
   sqlData: ISqlData[];
-  columns: string[];
-  executeSqlCodeData: { data: any[]; columns: any[]; rowsAffected: number };
+  columns: { name: string; dataType: string }[];
+  executeSqlCodeData: {
+    data: any[];
+    columns: { name: string; dataType: string }[];
+    rowsAffected: number;
+  };
   chartConfig: {
     xAxis?: string;
     yAxis?: string;
