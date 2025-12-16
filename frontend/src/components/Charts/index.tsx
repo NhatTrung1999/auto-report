@@ -31,7 +31,6 @@ const ChartsView: React.FC = () => {
     (chartType === 'none'
       ? 'No visualization selected'
       : 'Chart Type Not Found');
-
   return (
     <>
       <h2 className="text-3xl font-medium mb-6 text-gray-700 border-b border-gray-300 pb-2">

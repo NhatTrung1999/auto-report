@@ -20,13 +20,14 @@ import {
 import { useAppSelector } from '@/app/hooks';
 
 const ChartLineView: React.FC = () => {
-  const { executeSqlCodeData, chartConfig, loading, error } = useAppSelector(
-    (state) => state.sql
-  );
+  const { executeSqlCodeData, chartConfig, loading, error, filteredData } =
+    useAppSelector((state) => state.sql);
 
-  const data = executeSqlCodeData.data || [];
+  const displayData =
+    filteredData.length > 0 ? filteredData : executeSqlCodeData.data || [];
+  const rawDataLength = executeSqlCodeData.data?.length || 0;
+
   const columns = executeSqlCodeData.columns || [];
-
   const columnNames = columns.map((col) => col.name);
 
   // Dùng config từ Properties, fallback về cột đầu/thứ hai
@@ -68,7 +69,7 @@ const ChartLineView: React.FC = () => {
     );
   }
 
-  if (data.length === 0 || !xKey || !yKey) {
+  if (displayData.length === 0 || !xKey || !yKey) {
     return (
       <Card>
         <CardHeader>
@@ -76,49 +77,73 @@ const ChartLineView: React.FC = () => {
         </CardHeader>
         <CardContent className="flex items-center justify-center h-96">
           <p className="text-gray-500">
-            No data. Run a query and set X/Y axis in Properties.
+            {displayData.length === 0 && rawDataLength > 0
+              ? 'No data matches your current search.'
+              : 'No data available. Please run a query and configure X/Y axis in Properties.'}
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  const total = data.reduce(
+  const total = displayData.reduce(
     (sum: number, item: any) => sum + (Number(item[yKey]) || 0),
     0
   );
+
+  const recordLabel =
+    displayData.length < rawDataLength
+      ? `${displayData.length} filtered records`
+      : `${displayData.length} records`;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Line Chart</CardTitle>
         <CardDescription>
-          {yKey} by {xKey} ({data.length} records)
+          {yKey} by {xKey} ({recordLabel})
         </CardDescription>
       </CardHeader>
 
       <CardContent>
         <ChartContainer config={dynamicChartConfig}>
-          <LineChart data={data} margin={{ left: 12, right: 12 }}>
-            <CartesianGrid vertical={false} />
+          <LineChart data={displayData} margin={{ left: 12, right: 12 }}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
               dataKey={xKey}
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) =>
-                typeof value === 'string' ? value.slice(0, 10) : value
-              }
+              tickMargin={10}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              tickFormatter={(value) => value}
             />
             <YAxis
-              domain={[
-                (min: number) => Math.min(0, min),
-                (max: number) => max * 1.1,
-              ]}
               tickLine={false}
               axisLine={false}
+              tickMargin={10}
+              domain={[
+                (dataMin: number) => Math.min(0, dataMin * 1.1),
+                (dataMax: number) => dataMax * 1.1,
+              ]}
+              tickFormatter={(value: number) => {
+                if (value >= 1000000000) {
+                  return `${(value / 1000000000).toFixed(1)}B`;
+                }
+                if (value >= 1000000) {
+                  return `${(value / 1000000).toFixed(1)}M`;
+                }
+                if (value >= 1000) {
+                  return `${(value / 1000).toFixed(0)}k`;
+                }
+                return value.toLocaleString();
+              }}
             />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <ChartTooltip
+              cursor={{ strokeDasharray: '3 3' }}
+              content={<ChartTooltipContent />}
+            />
             <Line
               dataKey={yKey}
               type="monotone"

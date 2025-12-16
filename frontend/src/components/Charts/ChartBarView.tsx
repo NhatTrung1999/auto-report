@@ -1,7 +1,7 @@
 'use client';
 
 import { TrendingUp } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import {
   Card,
@@ -22,11 +22,13 @@ import {
 import { useAppSelector } from '@/app/hooks';
 
 const ChartBarView: React.FC = () => {
-  const { executeSqlCodeData, chartConfig, loading, error } = useAppSelector(
-    (state) => state.sql
-  );
+  const { executeSqlCodeData, chartConfig, loading, error, filteredData } =
+    useAppSelector((state) => state.sql);
 
-  const data = executeSqlCodeData.data || [];
+  console.log(filteredData);
+
+  const data =
+    filteredData.length > 0 ? filteredData : executeSqlCodeData.data || [];
   const columns = executeSqlCodeData.columns || [];
   const columnNames = columns.map((col) => col.name);
 
@@ -77,7 +79,9 @@ const ChartBarView: React.FC = () => {
         </CardHeader>
         <CardContent className="flex items-center justify-center h-96">
           <p className="text-gray-500">
-            No data. Run a query and set X/Y axis in Properties.
+            {filteredData.length === 0 && executeSqlCodeData.data?.length > 0
+              ? 'No data matches your search.'
+              : 'No data. Run a query and set X/Y axis in Properties.'}
           </p>
         </CardContent>
       </Card>
@@ -110,11 +114,32 @@ const ChartBarView: React.FC = () => {
             <XAxis
               dataKey={xKey}
               tickLine={false}
-              tickMargin={10}
               axisLine={false}
-              tickFormatter={(value) =>
-                typeof value === 'string' ? value.slice(0, 10) : value
-              }
+              tickMargin={10}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              tickFormatter={(value) => value}
+            />
+            <YAxis
+              domain={[
+                (min: number) => Math.min(0, min),
+                (max: number) => max * 1.1,
+              ]}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value: number) => {
+                if (value >= 1000000000) {
+                  return `${(value / 1000000000).toFixed(1)}B`;
+                }
+                if (value >= 1000000) {
+                  return `${(value / 1000000).toFixed(1)}M`;
+                }
+                if (value >= 1000) {
+                  return `${(value / 1000).toFixed(0)}k`;
+                }
+                return value.toLocaleString();
+              }}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />

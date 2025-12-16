@@ -104,11 +104,11 @@ const ColumnsView: React.FC = () => {
 
   return (
     <>
-      <h2 className="text-3xl font-medium mb-6 text-gray-700 border-b border-gray-300 pb-2">
+      <h2 className="text-3xl font-medium mb-3 text-gray-700 border-b border-gray-300 pb-2">
         Columns View
       </h2>
 
-      <div className="flex items-center justify-end mb-6">
+      <div className="flex items-center justify-end mb-3">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">Auto columns</Button>

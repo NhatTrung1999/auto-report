@@ -14,6 +14,8 @@ import {
 import {
   type ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
@@ -28,30 +30,33 @@ const COLORS = [
 ];
 
 const ChartPieView: React.FC = () => {
-  const { executeSqlCodeData, chartConfig, loading, error } = useAppSelector(
-    (state) => state.sql
-  );
+  const { executeSqlCodeData, chartConfig, loading, error, filteredData } =
+    useAppSelector((state) => state.sql);
 
-  const data = executeSqlCodeData.data || [];
+  const displayData =
+    filteredData.length > 0 ? filteredData : executeSqlCodeData.data || [];
+  const rawDataLength = executeSqlCodeData.data?.length || 0;
+
   const columns = executeSqlCodeData.columns || [];
-
   const columnNames = columns.map((col) => col.name);
 
   // Dùng config từ Properties cho Pie: Value (số) + Label (tên)
   const valueKey =
     chartConfig.value ||
-    columnNames.find((col) => typeof data[0]?.[col] === 'number') ||
+    columnNames.find(
+      (col) => displayData[0] && typeof displayData[0][col] === 'number'
+    ) ||
     columnNames[1] ||
     '';
   const labelKey = chartConfig.label || columnNames[0] || '';
 
   // Chuẩn bị dữ liệu cho Pie Chart
-  const pieData = data
+  const pieData = displayData
     .map((item: any) => ({
-      name: item[labelKey] || 'Unknown',
+      name: String(item[labelKey] ?? 'Unknown'),
       value: Number(item[valueKey]) || 0,
     }))
-    .filter((item: any) => item.value > 0);
+    .filter((item) => item.value > 0);
 
   // Config động
   const dynamicChartConfig: ChartConfig = {
@@ -103,7 +108,9 @@ const ChartPieView: React.FC = () => {
         </CardHeader>
         <CardContent className="flex-1 pb-0 flex items-center justify-center h-96">
           <p className="text-gray-500">
-            No data. Run a query and set Value/Label in Properties.
+            {pieData.length === 0 && rawDataLength > 0
+              ? 'No data matches your current search.'
+              : 'No valid data. Please run a query and configure Value/Label in Properties.'}
           </p>
         </CardContent>
       </Card>
@@ -112,14 +119,17 @@ const ChartPieView: React.FC = () => {
 
   const total = pieData.reduce((sum: number, item: any) => sum + item.value, 0);
 
-  console.log(total);
+  const itemLabel =
+    pieData.length < rawDataLength && rawDataLength > 0
+      ? `${pieData.length} filtered items`
+      : `${pieData.length} items`;
 
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
         <CardTitle>Pie Chart</CardTitle>
         <CardDescription>
-          Distribution of {valueKey} by {labelKey} ({pieData.length} items)
+          Distribution of {valueKey} by {labelKey} ({itemLabel})
         </CardDescription>
       </CardHeader>
 
@@ -129,9 +139,11 @@ const ChartPieView: React.FC = () => {
           className="mx-auto aspect-square max-h-[350px]"
         >
           <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend
+              content={<ChartLegendContent />}
+              verticalAlign="bottom"
+              align="center"
             />
             <Pie
               data={pieData}

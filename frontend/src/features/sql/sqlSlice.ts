@@ -14,12 +14,14 @@ interface ISqlState {
     columns: { name: string; dataType: string }[];
     rowsAffected: number;
   };
+  filteredData: any[];
   chartConfig: {
     xAxis?: string;
     yAxis?: string;
     value?: string;
     label?: string;
   };
+  searchTerm: string;
   loading: boolean;
   error: string | null;
 }
@@ -29,6 +31,8 @@ const initialState: ISqlState = {
   columns: [],
   executeSqlCodeData: { data: [], columns: [], rowsAffected: 0 },
   chartConfig: {},
+  filteredData: [],
+  searchTerm: '',
   loading: false,
   error: null,
 };
@@ -87,6 +91,12 @@ const sqlSlice = createSlice({
     ) => {
       state.chartConfig = action.payload;
     },
+    setSearchTerm: (state, action: PayloadAction<string>) => {
+      state.searchTerm = action.payload;
+    },
+    updateFilteredData: (state, action: PayloadAction<any[]>) => {
+      state.filteredData = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -136,6 +146,11 @@ const sqlSlice = createSlice({
   },
 });
 
-export const { clearChartConfig, setChartConfig } = sqlSlice.actions;
+export const {
+  clearChartConfig,
+  setChartConfig,
+  setSearchTerm,
+  updateFilteredData,
+} = sqlSlice.actions;
 
 export default sqlSlice.reducer;

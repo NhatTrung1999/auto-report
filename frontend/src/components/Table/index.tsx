@@ -1,5 +1,5 @@
-import { useAppSelector } from '@/app/hooks';
-import { Card, CardContent } from '../ui/card';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import {
   Table,
   TableBody,
@@ -15,9 +15,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import { Input } from '../ui/input';
+import { setSearchTerm, updateFilteredData } from '@/features/sql/sqlSlice';
 
 const TableSkeleton: React.FC = () => (
   <TableBody>
@@ -44,7 +46,10 @@ const formatDateValue = (value: any): any => {
 };
 
 const TableView: React.FC = () => {
-  const { executeSqlCodeData, loading } = useAppSelector((state) => state.sql);
+  const { executeSqlCodeData, loading, searchTerm } = useAppSelector(
+    (state) => state.sql
+  );
+  const dispatch = useAppDispatch();
 
   const rawData = executeSqlCodeData?.data || [];
   const columns = executeSqlCodeData?.columns || [];
@@ -88,7 +93,19 @@ const TableView: React.FC = () => {
       : bStr.localeCompare(aStr);
   });
 
-  const hasData = sortedData.length > 0;
+  const filteredData = sortedData.filter((row) =>
+    columns.some((col) => {
+      const cellValue = row[col.name];
+      if (cellValue == null) return false;
+      return String(cellValue).toLowerCase().includes(searchTerm.toLowerCase());
+    })
+  );
+
+  useEffect(() => {
+    dispatch(updateFilteredData(filteredData));
+  }, [dispatch, searchTerm]);
+
+  const hasData = filteredData.length > 0;
   const hasColumns = columns.length > 0;
   // const hasData =
   //   executeSqlCodeData?.data && executeSqlCodeData.data.length > 0;
@@ -96,9 +113,19 @@ const TableView: React.FC = () => {
   //   executeSqlCodeData?.columns && executeSqlCodeData.columns.length > 0;
 
   return (
-    <Card className="mt-6">
+    <Card>
+      <CardHeader className="flex justify-between items-center">
+        <CardTitle>Columns View</CardTitle>
+        <Input
+          type="text"
+          placeholder="Searching..."
+          className="w-[200px]"
+          value={searchTerm}
+          onChange={(e) => dispatch(setSearchTerm(e.target.value))}
+        />
+      </CardHeader>
       <CardContent>
-        <Card className="border border-gray-200 rounded-xl overflow-auto max-h-[600px] p-0">
+        <Card className="border border-gray-200 rounded-xl overflow-auto max-h-[500px] p-0">
           <Table className="min-w-full border-separate border-spacing-0">
             <TableHeader className="bg-gray-50 sticky top-0 z-30">
               <TableRow className="hover:bg-gray-50 border-b border-gray-200">
@@ -157,7 +184,7 @@ const TableView: React.FC = () => {
               <TableSkeleton />
             ) : hasData ? (
               <TableBody className="bg-white divide-y divide-gray-200">
-                {sortedData.map((row, i) => (
+                {filteredData.map((row, i) => (
                   <TableRow key={i} className="hover:bg-gray-50 group">
                     {columns.map((col, i) => (
                       <TableCell
@@ -177,7 +204,9 @@ const TableView: React.FC = () => {
                     colSpan={executeSqlCodeData.columns.length || 1}
                     className="h-24 text-center text-gray-500"
                   >
-                    No results returned.
+                    {searchTerm
+                      ? 'No results match your search.'
+                      : 'No results returned.'}
                   </TableCell>
                 </TableRow>
               </TableBody>
