@@ -32,11 +32,9 @@ const ChartBarView: React.FC = () => {
   const columns = executeSqlCodeData.columns || [];
   const columnNames = columns.map((col) => col.name);
 
-  // Dùng config từ Properties, fallback về cột đầu/thứ hai
   const xKey = chartConfig.xAxis || columnNames[0] || '';
   const yKey = chartConfig.yAxis || columnNames[1] || '';
 
-  // Config động cho legend và tooltip
   const dynamicChartConfig: ChartConfig = {};
   columnNames.forEach((col: string, index: number) => {
     dynamicChartConfig[col] = {
@@ -88,11 +86,15 @@ const ChartBarView: React.FC = () => {
     );
   }
 
-  // Tính tổng cho footer
   const total = data.reduce((sum: number, item: any) => {
     const val = Number(item[yKey]);
     return sum + (isNaN(val) ? 0 : val);
   }, 0);
+
+  const normalizedData = data.map((item: any) => ({
+    ...item,
+    [yKey]: Number(item[yKey]),
+  }));
 
   return (
     <Card>
@@ -107,7 +109,7 @@ const ChartBarView: React.FC = () => {
         <ChartContainer config={dynamicChartConfig}>
           <BarChart
             accessibilityLayer
-            data={data}
+            data={normalizedData}
             margin={{ left: 12, right: 12 }}
           >
             <CartesianGrid vertical={false} />

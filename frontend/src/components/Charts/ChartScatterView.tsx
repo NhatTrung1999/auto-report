@@ -174,10 +174,9 @@ const ChartScatterView: React.FC = () => {
     chartConfig,
     loading,
     error,
-    filteredData, // ← Thêm để lấy dữ liệu đã filter
+    filteredData, 
   } = useAppSelector((state) => state.sql);
 
-  // Ưu tiên dùng filteredData, fallback về data gốc
   const displayData =
     filteredData.length > 0 ? filteredData : executeSqlCodeData.data || [];
   const rawDataLength = executeSqlCodeData.data?.length || 0;
@@ -188,13 +187,11 @@ const ChartScatterView: React.FC = () => {
   const xKey = chartConfig.xAxis || columnNames[0] || '';
   const yKey = chartConfig.yAxis || columnNames[1] || '';
 
-  // Config động cho tooltip và màu
   const dynamicChartConfig: ChartConfig = {
     [xKey]: { label: xKey, color: 'var(--chart-1)' },
     [yKey]: { label: yKey, color: 'var(--chart-2)' },
   };
 
-  // Loading
   if (loading) {
     return (
       <Card>
@@ -208,7 +205,6 @@ const ChartScatterView: React.FC = () => {
     );
   }
 
-  // Error
   if (error) {
     return (
       <Card>
@@ -222,7 +218,6 @@ const ChartScatterView: React.FC = () => {
     );
   }
 
-  // Không có dữ liệu hoặc chưa chọn trục
   if (displayData.length === 0 || !xKey || !yKey) {
     return (
       <Card>
@@ -240,18 +235,14 @@ const ChartScatterView: React.FC = () => {
     );
   }
 
-  // Chuẩn bị dữ liệu: đảm bảo X và Y là number (nếu không thì chuyển, hoặc bỏ điểm)
   const processedData = displayData
     .map((item: any) => ({
       x: Number(item[xKey]),
       y: Number(item[yKey]),
-      name: item[xKey] !== undefined ? String(item[xKey]) : 'N/A', // để tooltip
+      name: item[xKey] !== undefined ? String(item[xKey]) : 'N/A', 
     }))
-    .filter((point) => !isNaN(point.x) && !isNaN(point.y)); // chỉ giữ điểm hợp lệ
+    .filter((point) => !isNaN(point.x) && !isNaN(point.y));
 
-  console.log(processedData);
-
-  // Nếu sau khi lọc vẫn không có điểm hợp lệ
   if (processedData.length === 0) {
     return (
       <Card>
@@ -268,7 +259,6 @@ const ChartScatterView: React.FC = () => {
     );
   }
 
-  // Hiển thị số điểm (filtered hay total)
   const pointLabel =
     processedData.length < rawDataLength && rawDataLength > 0
       ? `${processedData.length} filtered points`
@@ -360,9 +350,6 @@ const ChartScatterView: React.FC = () => {
         <div className="flex gap-2 font-medium leading-none">
           Correlation analysis between {xKey} and {yKey}
           <TrendingUp className="h-4 w-4 text-green-600" />
-        </div>
-        <div className="text-muted-foreground">
-          Each point represents one record from your query results
         </div>
       </CardFooter>
     </Card>

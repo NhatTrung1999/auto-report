@@ -30,11 +30,9 @@ const ChartLineView: React.FC = () => {
   const columns = executeSqlCodeData.columns || [];
   const columnNames = columns.map((col) => col.name);
 
-  // Dùng config từ Properties, fallback về cột đầu/thứ hai
   const xKey = chartConfig.xAxis || columnNames[0] || '';
   const yKey = chartConfig.yAxis || columnNames[1] || '';
 
-  // Config động cho tooltip
   const dynamicChartConfig: ChartConfig = {};
   columnNames.forEach((col: string, index: number) => {
     dynamicChartConfig[col] = {
@@ -96,6 +94,11 @@ const ChartLineView: React.FC = () => {
       ? `${displayData.length} filtered records`
       : `${displayData.length} records`;
 
+  const normalizedData = displayData.map((item: any) => ({
+    ...item,
+    [yKey]: Number(item[yKey]),
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -107,7 +110,7 @@ const ChartLineView: React.FC = () => {
 
       <CardContent>
         <ChartContainer config={dynamicChartConfig}>
-          <LineChart data={displayData} margin={{ left: 12, right: 12 }}>
+          <LineChart data={normalizedData} margin={{ left: 12, right: 12 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis
               dataKey={xKey}
@@ -123,6 +126,8 @@ const ChartLineView: React.FC = () => {
               tickLine={false}
               axisLine={false}
               tickMargin={10}
+              type="number"
+              allowDataOverflow={false}
               domain={[
                 (dataMin: number) => Math.min(0, dataMin * 1.1),
                 (dataMax: number) => dataMax * 1.1,
